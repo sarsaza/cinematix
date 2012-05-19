@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<components
+	xmlns="http://jboss.com/products/seam/components"
+	xmlns:core="http://jboss.com/products/seam/core"
+	xmlns:persistence="http://jboss.com/products/seam/persistence"
+	xmlns:drools="http://jboss.com/products/seam/drools"
+	xmlns:bpm="http://jboss.com/products/seam/bpm"
+	xmlns:security="http://jboss.com/products/seam/security"
+	xmlns:mail="http://jboss.com/products/seam/mail"
+	xmlns:web="http://jboss.com/products/seam/web"
+	xmlns:international="http://jboss.com/products/seam/international"
+	xmlns:resteasy="http://jboss.com/products/seam/resteasy"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://jboss.com/products/seam/core http://jboss.com/products/seam/core-2.2.xsd
+                 http://jboss.com/products/seam/persistence http://jboss.com/products/seam/persistence-2.2.xsd
+                 http://jboss.com/products/seam/drools http://jboss.com/products/seam/drools-2.@.xsd
+                 http://jboss.com/products/seam/bpm http://jboss.com/products/seam/bpm-2.2.xsd
+                 http://jboss.com/products/seam/security http://jboss.com/products/seam/security-2.2.xsd
+                 http://jboss.com/products/seam/mail http://jboss.com/products/seam/mail-2.2.xsd
+                 http://jboss.com/products/seam/web http://jboss.com/products/seam/web-2.2.xsd
+                 http://jboss.com/products/seam/international http://jboss.com/products/seam/international-2.2.xsd
+                 http://jboss.com/products/seam/resteasy http://jboss.com/products/seam/resteasy-2.2.xsd
+                 http://jboss.com/products/seam/components http://jboss.com/products/seam/components-2.2.xsd">
+
+	<import>kz.bee.wx.locale</import>
+	<core:init debug="@debug@" jndi-pattern="@jndiPattern@" />
+
+	<core:manager concurrent-request-timeout="500" conversation-timeout="120000" conversation-id-parameter="cid" parent-conversation-id-parameter="pid" />
+
+	<!-- Make sure this URL pattern is the same as that used by the Faces Servlet -->
+	<web:hot-deploy-filter url-pattern="*.seam" />
+
+	<persistence:entity-manager-factory name="entityManagerFactory" persistence-unit-name="cinematix" installed="@seamBootstrapsPu@" />
+
+	<persistence:managed-persistence-context name="entityManager" auto-create="true" entity-manager-factory="@seamEmfRef@" persistence-unit-jndi-name="@puJndiName@" />
+
+	<drools:rule-base name="securityRules">
+		<drools:rule-files>
+			<value>/security.drl</value>
+		</drools:rule-files>
+	</drools:rule-base>
+
+	<security:rule-based-permission-resolver security-rules="#{securityRules}" />
+	<security:jpa-permission-store user-permission-class="kz.bee.wx.security.Permission" />
+	<security:jpa-identity-store user-class="kz.bee.wx.security.User" role-class="kz.bee.wx.security.Role" />
+
+	<web:cache-control-filter name="imageCacheControlFilter"
+		regex-url-pattern=".*(\.gif|\.png|\.jpg|\.jpeg)"
+		value="max-age=86400"/>
+	
+	<web:cache-control-filter name="textCacheControlFilter"
+		regex-url-pattern=".*(\.css|\.js)"
+		value="max-age=1400"/>
+
+	<!-- For use with jBPM pageflow or process management -->
+	<bpm:jbpm />
+
+	<component name="org.jboss.seam.core.resourceLoader">
+		<property name="bundleNames">
+			<value>wx-messages</value>
+			<value>wx-bpm-messages</value>
+		</property>
+	</component>
+
+	<international:locale-selector cookie-enabled="true" />
+
+	<!--
+	<mail:mail-session host="localhost" port="25" />
+	-->
+	
+	<!--
+	<web:context-filter url-pattern="*.ws" />
+	-->
+	
+	
+	<!-- Resteasy -->
+	
+	<!-- Seam reference: 24.4.2. Resources as Seam components -->
+	<!-- If your RESTful Seam application has to preserve session state across REST HTTP requests, disable this behavior in your configuration file: -->
+	<!-- Every REST HTTP request will now create a new session that will only be removed by timeout or explicit invalidation in your code through Session.instance().invalidate(). It is your responsibility to pass a valid session identifier along with your HTTP requests, if you want to utilize the session context across requests. -->
+	<!--
+	<resteasy:application destroy-session-after-request="false"/>
+	-->
+
+</components>

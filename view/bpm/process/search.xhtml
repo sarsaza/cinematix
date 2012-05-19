@@ -1,0 +1,205 @@
+<!DOCTYPE composition PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+    "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:s="http://jboss.com/products/seam/taglib"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:rich="http://richfaces.org/rich"
+    xmlns:a="http://richfaces.org/a4j"
+    xmlns:c="http://java.sun.com/jstl/core"
+    template="/bpm/layout/template.xhtml">
+    
+    <ui:define name="domain-header">
+    	#{messages['bpm.request.search']}
+    </ui:define>
+	
+    <ui:define name="domain-body">
+    
+	<h:form id="searchForm">
+			<rich:panel id="searchPanel" styleClass="theme6 rich-panel-header-off">
+				<a:region>	
+					
+					<s:decorate id="mixedField" style="float:left;" template="/layout/vertical-edit.xhtml">
+						<ui:define name="label">#{messages['forms.number']}:</ui:define>
+						<h:inputText value="#{processSearch.processId}" styleClass="input" style="min-width:100px; width: 100px;"  />		
+					</s:decorate>
+	
+					<div style="width:10px; height:48px; float:left;"/>
+					
+					<s:decorate id="processNameField"  style="float:left;" template="/layout/vertical-edit.xhtml">
+					
+						<ui:define name="label">#{messages['bpm.request.type']}:</ui:define>					
+						<h:selectOneMenu  value="#{processSearch.processName}"  styleClass="input" style="width: 190px;">
+							<s:selectItems var="process" value="#{processDefinitionListForSearch}" label="#{messages['ProcessDefinition.'.concat(process.processDefinition.name).concat('.').concat(process.processDefinition.version).concat('.name')]}" itemValue="#{process.name}" noSelectionLabel="-"/>
+							</h:selectOneMenu>			
+					</s:decorate>
+					
+					<div style="width:10px; height:48px; float:left;"/>
+				
+					<!-- s:decorate id="initiatorField" style="float:left;" template="/layout/vertical-edit.xhtml" >
+						<ui:define name="label">Инициатор:</ui:define>
+						<h:inputText value="#{processSearch.initiator}" id="initiatorInputText" converter="#{userNameConverter}" styleClass="input" style="width: 150px;"/>
+						<rich:suggestionbox
+							eventsQueue="userQueue"
+							minChars="3"
+							for="initiatorInputText" 
+							suggestionAction="#{autoComplete.getUserList}"
+							var="user"
+							converter="#{userNameConverter}"
+							nothingLabel="не найдено"
+							width="250"
+							height="200">
+							<h:column>
+								<h:outputText value="#{user}" />
+							</h:column>
+						</rich:suggestionbox>
+					</s:decorate -->	
+					
+					<div style="width:10px; height:48px; float:left;"/>				
+					
+					<s:decorate  style="float:left;"  template="/layout/vertical-edit.xhtml">
+						<ui:define name="label">#{messages['bpm.request.searh.startDate']}:</ui:define>
+						<rich:calendar  inputSize="10" value="#{processSearch.beginDate}" datePattern="dd.MM.yyyy"/>
+					</s:decorate>
+
+					<div style="width:10px; height:48px; float:left;"/>				
+					
+					<s:decorate  style="float:left;"  template="/layout/vertical-edit.xhtml">
+						<ui:define name="label">#{messages['bpm.request.searh.endDate']}:</ui:define>
+						<rich:calendar inputSize="10" value="#{processSearch.endDate}"	datePattern="dd.MM.yyyy"/>
+					</s:decorate>
+					
+					<div style="width:10px; height:48px; float:left;"/>
+					
+					<a:jsFunction name="search" action="#{processSearch.search()}" reRender="processDataTable"  ignoreDupResponses="true" eventsQueue="searchQueue" oncomplete="changeMarginTop('0px');"/>
+					<h:commandButton value="Поиск" class="button left" style="margin-top: 20px;" onclick="search(); return false;"/>
+					<h:commandButton value="Сброс" class="button right" style="margin-top: 20px;" onclick="reset(); return false;"/>
+										
+					<div style="clear: both;"/>
+				</a:region>	
+			</rich:panel>
+			
+			<div style="overflow:hidden; height:500px;">
+				
+				<rich:panel id="resultsPanel" styleClass="facility-panel annimation">	 	
+					<f:facet name="header">
+						#{messages['bpm.request.searh.result']}
+					</f:facet>					
+					<div style="overflow: auto; overflow-x: hidden; height: 100%;">
+	
+						<rich:dataTable id="processDataTable" value="#{listOfProcessInstances}" var="process" rows="14">
+							<rich:column style="width:90px;" headerClass="left">
+								<f:facet name="header">#{messages['forms.number']}</f:facet>
+								<a:commandLink value="#{process.id}" action ="#{businessProcess.resumeProcess(process.id)}"   reRender="processInfoPanel,processDiagramPanel,processTasksPanel"  oncomplete="changeMarginTop('-520px');"  status="globalStatus" ignoreDupResponses="true" eventsQueue="processQueue"  />		
+							</rich:column>
+							
+							<rich:column style="width:433px;">
+								<f:facet name="header">#{messages['bpm.request.type']}</f:facet>
+								<h:outputText value="#{strings.crop(messages['ProcessDefinition.'.concat(process.processDefinition.name).concat('.').concat(process.processDefinition.version).concat('.name')], 60)}"/>		
+								<rich:toolTip direction="top-right" styleClass="toolTip" layout="block">
+									#{messages['ProcessDefinition.'.concat(process.processDefinition.name).concat('.').concat(process.processDefinition.version).concat('.name')]}
+								</rich:toolTip>
+							</rich:column>
+		
+							<rich:column  style="width:70px;">
+								<f:facet name="header">#{messages['bpm.request.searh.result.begin']}</f:facet>
+								<h:outputText value="#{process.start}">
+									<s:convertDateTime type="date" pattern="dd.MM.yyyy"/>
+						        </h:outputText>		
+							</rich:column>
+		
+							<rich:column style="width:70px;">
+								<f:facet name="header">#{messages['bpm.request.searh.result.end']}</f:facet>
+								<h:outputText value="#{process.end}">
+									<s:convertDateTime type="date" pattern="dd.MM.yyyy"/>
+						        </h:outputText>							
+						    </rich:column>
+		
+							<rich:column style="width:180px;" headerClass="right">
+								<f:facet name="header">#{messages['bpm.request.searh.result.currentNode']}</f:facet>
+								<h:outputText  value="#{strings.crop(messages['ProcessDefinition.'.concat(process.processDefinition.name).concat('.').concat(process.processDefinition.version).concat('.nodes.').concat(process.rootToken.node.name).concat('.name')], 28)}"/>		
+								<rich:toolTip direction="top-right" styleClass="toolTip" layout="block">
+									#{messages['ProcessDefinition.'.concat(process.processDefinition.name).concat('.').concat(process.processDefinition.version).concat('.nodes.').concat(process.rootToken.node.name).concat('.name')]}
+								</rich:toolTip>
+							</rich:column>		
+							
+							<f:facet name="footer">
+								<rich:datascroller for="processDataTable" renderIfSinglePage="false"/>
+							</f:facet>		
+																	
+						</rich:dataTable>
+					</div>	
+					
+				</rich:panel>
+				
+				
+				<rich:panel id="processInfoPanel" styleClass="facility-panel" style="margin-top: 10px;">	 	
+					<f:facet name="header">
+						<div style="float: left"> #{messages['ProcessDefinition.'.concat(processInstance.processDefinition.name).concat('.').concat(processInstance.processDefinition.version).concat('.name')]} / #{processInstance.id} / #{messages['bpm.request.details']} </div>
+
+						<div style="float: right; margin-top: 1px; margin-right: 4px;"><a href="#" onclick="changeMarginTop('0px');"><span class="icon icon-folder-up"/></a></div>
+						<div style="float: right; margin-right: 10px; margin-left: 7px; margin-top: 3px; height: 14px; border-left: 1px dotted #CCC;"/>
+						<div style="float: right; margin-top: 1px; margin-right: 4px;"><a href="#" onclick="changeMarginTop('-1040px');"><span class="icon icon-process-diagram"/></a></div>
+						<div style="float: right; margin-right: 10px; margin-left: 7px; margin-top: 3px; height: 14px; border-left: 1px dotted #CCC;"/>
+						<div style="float: right; margin-top: 3px; margin-right: 4px;"><a href="#" onclick="changeMarginTop('-1560px');"><span class="icon icon-task"/></a></div>
+						
+					</f:facet>
+					<div style="overflow: auto; overflow-x: hidden; height: 100%;">
+	
+						<c:if test="#{processInstance != null}">						
+							<ui:include src="/bpm/forms/#{processInstance.processDefinition.id}/process.info.xhtml" />		       			
+						</c:if>				
+					
+					</div>
+				</rich:panel>	
+
+				<rich:panel id="processDiagramPanel" styleClass="facility-panel" style="margin-top: 10px;">	 	
+					<f:facet name="header">
+						<div style="float: left"> #{messages['ProcessDefinition.'.concat(processInstance.processDefinition.name).concat('.').concat(processInstance.processDefinition.version).concat('.name')]} / #{processInstance.id} / Диаграмма  </div>
+
+						<div style="float: right; margin-top: 3px; margin-right: 4px;"><a href="#" onclick="changeMarginTop('-520px');"><span class="icon icon-folder-up"/></a></div>
+						<div style="float: right; margin-right: 10px; margin-left: 7px; margin-top: 3px; height: 14px; border-left: 1px dotted #CCC;"/>
+						<div style="float: right; margin-top: 1px; margin-right: 4px;"><a href="#{request.contextPath}/bpm/diagram/process.diagram.full.seam?cid=#{conversation.id}" target="_blank"><span class="icon icon-fullscreen"/></a></div>
+					</f:facet>
+					<c:if test="#{processInstance != null}">						
+						<ui:include src="/bpm/diagram/process.diagram.xhtml" />		       			
+					</c:if>
+				</rich:panel>		
+				
+				
+				<rich:panel id="processTasksPanel" styleClass="facility-panel" style="margin-top: 10px;">	 	
+					<f:facet name="header">
+						<div style="float: left"> #{messages['ProcessDefinition.'.concat(processInstance.processDefinition.name).concat('.').concat(processInstance.processDefinition.version).concat('.name')]} / #{processInstance.id} / #{messages['kz.bee.wx.menu.labels.Tasks']}  </div>
+						<div style="float: right; margin-top: 3px; margin-right: 4px;"><a href="#" onclick="changeMarginTop('-520px');"><span class="icon icon-folder-up"/></a></div>
+					</f:facet>
+					<div style="overflow: auto; overflow-x: hidden; height: 100%;">	
+						<c:if test="#{processInstance != null}">						
+							<ui:include src="/bpm/process/task.list.xhtml" />					
+						</c:if>				
+					
+					</div>
+				</rich:panel>		
+				
+				
+			</div>		
+			
+			<input id="processInstance" value="#{processInstance}" type="hidden"/>
+			<script  language="JavaScript" type="text/javascript" >
+			
+			onLoad();
+			
+			function onLoad(){				
+				if(document.getElementById("processInstance").value != "")
+					changeMarginTop('-1560px')
+			}
+			
+			function changeMarginTop(value){
+				document.getElementById("searchForm:resultsPanel").style.marginTop=value;
+			}
+			</script>
+
+	
+  	</h:form>  	
+    </ui:define>
+</ui:composition>

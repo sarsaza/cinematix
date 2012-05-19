@@ -1,0 +1,41 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:a="http://richfaces.org/a4j"
+	xmlns:c="http://java.sun.com/jstl/core">
+
+	<rich:dataTable value="#{processInstanceTaskInstanceList}" var="task">
+		<rich:column style="width:90px; text-align: center;" headerClass="left">
+			<f:facet name="header">№</f:facet>
+			<h:outputText value="#{task.id}" rendered="#{(not task.open) or (not s:hasPermission(task,'end'))}" styleClass="#{task.open ? 'open-task' : 'closed-task'}" />
+			<h:commandLink action="#{businessProcess.resumeTask(task.id)}" value="#{task.id}" rendered="#{s:hasPermission(task,'end') &amp;&amp; task.open}" styleClass="#{task.open ? 'open-task' : 'closed-task'}"/>
+		</rich:column>
+		<rich:column style="width: 220px; ">
+			<f:facet name="header">#{messages['bpm.task.actor']}</f:facet>
+			<h:outputText value="#{users.byActorId(task.actorId)}" rendered="#{task.actorId != null}" converter="#{userConverter}" />
+			<h:outputText value="Не присвоено" rendered="#{task.actorId == null}" />
+		</rich:column>
+		<rich:column style="width: 238px;">
+			<f:facet name="header">#{messages['bpm.task.name']}</f:facet>
+			<h:outputText value="#{strings.crop(messages['ProcessDefinition.'.concat(task.task.processDefinition.name).concat('.').concat(task.task.processDefinition.version).concat('.tasks.').concat(task.name).concat('.name')], 30)}" />
+			<rich:toolTip direction="top-right" styleClass="toolTip" layout="block">
+				#{messages['ProcessDefinition.'.concat(task.task.processDefinition.name).concat('.').concat(task.task.processDefinition.version).concat('.tasks.').concat(task.name).concat('.name')]}
+			</rich:toolTip>
+		</rich:column>
+		<rich:column style="width: 140px; text-align: center;">
+			<f:facet name="header">#{messages['bpm.task.created']}</f:facet>
+			<h:outputText value="#{task.create}">
+				<s:convertDateTime type="date" pattern="dd.MM.yyyy | HH:mm:ss" />
+			</h:outputText>
+		</rich:column>
+		<rich:column style="width: 140px; text-align: center;" headerClass="right">
+			<f:facet name="header">#{messages['bpm.task.done']}</f:facet>
+			<h:outputText value="#{task.end}">
+				<s:convertDateTime type="date" pattern="dd.MM.yyyy | HH:mm:ss" />
+			</h:outputText>
+		</rich:column>
+	</rich:dataTable>
+</ui:composition>

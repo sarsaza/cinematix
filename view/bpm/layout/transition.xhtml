@@ -1,0 +1,21 @@
+<ui:composition  xmlns="http://www.w3.org/1999/xhtml"
+                 xmlns:ui="http://java.sun.com/jsf/facelets"
+                 xmlns:h="http://java.sun.com/jsf/html"
+                 xmlns:f="http://java.sun.com/jsf/core"
+                 xmlns:rich="http://richfaces.org/rich"
+                 xmlns:s="http://jboss.com/products/seam/taglib">
+
+	<h:commandLink rendered="#{submit ne false}" action="#{businessProcess.endTaskNextTask}"
+	 	value="#{messages['ProcessDefinition.'.concat(processInstance.processDefinition.name).concat('.').concat(processInstance.processDefinition.version).concat('.nodes.').concat(taskInstance.task.taskNode.name).concat('.transitions.').concat(transition).concat('.name')]}"
+	 	style="#{style}"
+	 	styleClass="button">
+		<f:param name="transitionName" value="#{transition}"/>
+	</h:commandLink>
+	
+	<s:link rendered="#{submit eq false}" action="#{businessProcess.endTaskNextTask}"
+	 	value="#{messages['ProcessDefinition.'.concat(processInstance.processDefinition.name).concat('.').concat(processInstance.processDefinition.version).concat('.nodes.').concat(taskInstance.task.taskNode.name).concat('.transitions.').concat(transition).concat('.name')]}"
+	 	style="#{style}"
+	 	styleClass="button">
+		<f:param name="transitionName" value="#{transition}"/>
+	</s:link>
+</ui:composition>

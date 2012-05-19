@@ -1,0 +1,141 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:s="http://jboss.com/products/seam/taglib"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:c="http://java.sun.com/jstl/core"
+                xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:a="http://richfaces.org/a4j"
+                xmlns:rich="http://richfaces.org/rich"
+                template="/bpm/layout/template.xhtml">
+
+	<ui:define name="domain-header">
+		#{messages['kz.bee.wx.bpm.ArchiveTaskInstanceList']}
+	</ui:define>
+	<ui:define name="domain-body">
+	
+		<h:form id="mainForm">
+			<a:region>
+		
+			<rich:panel id="searchPanel" styleClass="theme6">
+		   		<f:facet name="header">#{messages['kz.bee.wx.bpm.SearchArchiveTaskInstanceList']}</f:facet>
+				<s:decorate id="mixedField" style="float:left;" template="/layout/vertical-edit.xhtml">
+					<input placeholder="#{messages['kz.bee.wx.bpm.EnterSearchText']}" type="text" id="text" value="#{wxArchivedTaskInstanceList.searchString}" class="input" style="width: 775px;" onkeypress="if(window.event.keyCode == 13) {getTaskList('same', $('text').value); return false;}"/>
+				</s:decorate>
+				<div class="buttons" style="display: inline;">
+					<a:jsFunction name="getTaskList" action="search" reRender="taskInstanceList, pooledTaskInstanceList" status="globalStatus" ignoreDupResponses="true" ajaxSingle="true" oncomplete="showError()">
+						<a:actionparam name="param1" assignTo="#{customTaskInstanceList.searchString}"/> 
+					</a:jsFunction>
+					<button onclick="getTaskList('same', $('text').value); return false;" class="button" style="margin-left: 10px; margin-top: 5px; height: 22px;">#{messages['kz.bee.wx.bpm.Search']}</button>
+					<button onclick="getTaskList('same', ''); return false;" class="button" style="margin-left: -4px; margin-top: 5px; height: 22px;">#{messages['kz.bee.wx.bpm.Reset']}</button>
+				</div>
+			</rich:panel>
+
+			<s:div id="dateRangeSelector" style="margin-bottom: 20px;">
+				<span class="date-range-label #{wxArchivedTaskInstanceList.dateRange == 'today' ? 'date-range-label-checked' : ''}" id="range-today" onclick="getTaskList('today', $('text').value); return false;">#{messages['kz.bee.wx.bpm.Today']}</span>
+				<span class="date-range-label #{wxArchivedTaskInstanceList.dateRange == 'yesterday' ? 'date-range-label-checked' : ''}" id="range-yesterday" onclick="getTaskList('yesterday', $('text').value); return false;">#{messages['kz.bee.wx.bpm.Yesterday']}</span>
+				<span class="date-range-label #{wxArchivedTaskInstanceList.dateRange == 'week' ? 'date-range-label-checked' : ''}" id="range-week" onclick="getTaskList('week', $('text').value); return false;">#{messages['kz.bee.wx.bpm.CurrentWeek']}</span>
+				<span class="date-range-label #{wxArchivedTaskInstanceList.dateRange == 'month' ? 'date-range-label-checked' : ''}" id="range-month" onclick="getTaskList('month', $('text').value); return false;">#{messages['kz.bee.wx.bpm.CurrentMonth']}</span>
+				<span class="date-range-label #{wxArchivedTaskInstanceList.dateRange.startsWith('date:') ? 'date-range-label-checked' : ''}" id="range-date" onclick="showModal('#dateCalendar')">#{messages['kz.bee.wx.bpm.Date']}<s:fragment rendered="#{wxArchivedTaskInstanceList.dateRange.startsWith('date:')}"> (<h:outputText value="#{wxArchivedTaskInstanceList.dateFrom}"><s:convertDateTime type="date" pattern="dd.MM.yyyy"/></h:outputText>)</s:fragment></span>
+				<span class="date-range-label #{wxArchivedTaskInstanceList.dateRange.startsWith('range:') ? 'date-range-label-checked' : ''}" id="range-period" onclick="showModal('#rangeCalendar')">#{messages['kz.bee.wx.bpm.Period']}<s:fragment rendered="#{wxArchivedTaskInstanceList.dateRange.startsWith('range:')}"> (<h:outputText value="#{wxArchivedTaskInstanceList.dateFrom}"><s:convertDateTime type="date" pattern="dd.MM.yyyy"/></h:outputText>#{' '}-#{' '}<h:outputText value="#{wxArchivedTaskInstanceList.dateTo}"><s:convertDateTime type="date" pattern="dd.MM.yyyy"/></h:outputText>)</s:fragment></span>
+			</s:div>
+			
+			<s:div id="calendars">
+			
+			<div id="dateCalendar" class="modal-panel">
+				<rich:panel styleClass="dropshadow modal-panel-date-calendar">	 	
+					<f:facet name="header">
+						<div style="float: left">#{messages['kz.bee.wx.bpm.SelectDate']}</div>
+						<div style="float: right; margin-top: 3px; margin-right: 4px;"><a href="javascript:hideModal('#dateCalendar')"><span class="icon icon-folder-up"/></a></div>
+					</f:facet>
+					<div>
+						<rich:calendar id="dateInput" value="#{wxArchivedTaskInstanceList.dateFrom}" popup="false" ondateselected="getDateTaskList()"/>
+					</div>		       			
+				</rich:panel>
+			</div>
+			
+			<div id="rangeCalendar" class="modal-panel">
+				<rich:panel styleClass="dropshadow modal-panel-range-calendar">	 	
+					<f:facet name="header">
+						<div style="float: left">#{messages['kz.bee.wx.bpm.SelectPeriod']}</div>
+						<div style="float: right; margin-top: 3px; margin-right: 4px;"><a href="javascript:hideModal('#rangeCalendar')"><span class="icon icon-folder-up"/></a></div>
+					</f:facet>
+					<div>
+						<div style="display: inline-block;"><rich:calendar id="dateFromInput" value="#{wxArchivedTaskInstanceList.dateFrom}" popup="false"/></div>
+						<div style="display: inline-block;"><rich:calendar id="dateToInput" value="#{wxArchivedTaskInstanceList.dateTo}" popup="false"/></div>
+						<div style="width: 100%; text-align:center;" class="buttons"><s:button value="Выбрать" onclick="getRangeTaskList()" styleClass="button"/></div>
+					</div>		       			
+				</rich:panel>
+			</div>
+			
+			</s:div>
+
+			<a:jsFunction name="getTaskList" action="#{wxArchivedTaskInstanceList.list()}" reRender="taskList, dateRangeSelector, calendars, messagesContainer" status="globalStatus" ignoreDupResponses="true" ajaxSingle="true" oncomplete="showError()">
+				<a:actionparam name="param1" assignTo="#{wxArchivedTaskInstanceList.dateRange}"/> 
+				<a:actionparam name="param2" assignTo="#{wxArchivedTaskInstanceList.searchString}"/> 
+			</a:jsFunction>
+			</a:region>
+		
+			<rich:panel id="taskList">
+				<f:facet name="header">#{messages['kz.bee.wx.bpm.ArchiveTaskInstanceList']} (#{wxArchivedTaskInstanceList.findTaskInstancesByActorId().size()})</f:facet>
+				<rich:dataTable var="ti" value="#{wxArchivedTaskInstanceList.findTaskInstancesByActorId()}" styleClass="task-list">
+					<rich:column sortable="true" sortBy="#{ti.task.processDefinition.name} #{ti.name}" headerClass="left">
+						<f:facet name="header">#{messages['kz.bee.wx.bpm.Name']}</f:facet>
+						<div class="task-list-task-cell" title="#{messages['ProcessDefinition.'.concat(ti.task.processDefinition.name).concat('.').concat(ti.task.processDefinition.version).concat('.tasks.').concat(ti.name).concat('.name')]}"><s:link value="#{messages['ProcessDefinition.'.concat(ti.task.processDefinition.name).concat('.').concat(ti.task.processDefinition.version).concat('.tasks.').concat(ti.name).concat('.name')]}" action="#{businessProcess.beginTask}" taskInstance="#{ti}"/></div>
+					</rich:column>
+					<rich:column>
+						<f:facet name="header">#{messages['kz.bee.wx.bpm.Details']}</f:facet>
+						<div class="task-list-process-cell2" title="#{not empty ti.description ? ti.description : ti.processInstance.key}"><div class="task-list-process-label process-label-#{ti.task.processDefinition.name}">#{messages['ProcessDefinition.'.concat(ti.task.processDefinition.name).concat('.').concat(ti.task.processDefinition.version).concat('.shortname')]}</div> #{not empty ti.description ? ti.description : ti.processInstance.key}</div>
+					</rich:column>
+					<rich:column sortable="true" sortBy="#{ti.create}">
+						<f:facet name="header">#{messages['kz.bee.wx.bpm.Created']}</f:facet>
+						<h:outputText value="#{ti.create}">
+							<s:convertDateTime type="date" pattern="dd.MM.yyyy"/>
+						</h:outputText>
+					</rich:column>
+					<rich:column sortable="true" sortBy="#{ti.end}" headerClass="right">
+						<f:facet name="header">#{messages['kz.bee.wx.bpm.Ended']}</f:facet>
+						<h:outputText value="#{ti.end}">
+							<s:convertDateTime type="date" pattern="dd.MM.yyyy"/>
+						</h:outputText>
+					</rich:column>
+				</rich:dataTable>
+			</rich:panel>
+			
+			<div id="curtain"></div>
+			
+			<script type="text/javascript">
+			//<![CDATA[
+				function getDateTaskList(){
+					var date = event.rich.date;
+					getTaskList("date:" + (date.getDate() < 10 ? '0' + Number(date.getDate()) : Number(date.getDate())) + "." + (date.getMonth() < 9 ? '0'+Number(date.getMonth()+1) : Number(date.getMonth()+1)) + "." + date.getFullYear(), $('text').value);
+					hideModal("#dateCalendar");
+					return false;
+				}
+				function getRangeTaskList(){
+					var dateFrom = $("mainForm:dateFromInput").component.getSelectedDate();
+					var dateTo = $("mainForm:dateToInput").component.getSelectedDate();
+					getTaskList("range:" + (dateFrom.getDate() < 10 ? '0' + Number(dateFrom.getDate()) : Number(dateFrom.getDate())) + "." + (dateFrom.getMonth() < 9 ? '0'+Number(dateFrom.getMonth()+1) : Number(dateFrom.getMonth()+1)) + "." + dateFrom.getFullYear() + " - " + (dateTo.getDate() < 10 ? '0' + Number(dateTo.getDate()) : Number(dateTo.getDate())) + "." + (dateTo.getMonth() < 9 ? '0'+Number(dateTo.getMonth()+1) : Number(dateTo.getMonth()+1)) + "." + dateTo.getFullYear(), $('text').value);
+					//getTaskList("range:01.03.2011 - 22.04.2011");
+					hideModal("#rangeCalendar");
+					return false;
+				}
+			//]]>
+			</script>
+			<script type="text/javascript">
+			//<![CDATA[
+				function showModal(selector){
+					jQuery('#curtain').fadeIn(150);
+					jQuery(selector).fadeIn(150);
+				}
+				function hideModal(selector){
+					jQuery('#curtain').fadeOut();
+					jQuery(selector).fadeOut();
+				}
+			//]]>
+			</script>
+		</h:form>
+
+	</ui:define>
+	
+</ui:composition>

@@ -1,0 +1,35 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:s="http://jboss.com/products/seam/taglib"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:c="http://java.sun.com/jstl/core"
+                xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:a4j="http://richfaces.org/a4j"
+                xmlns:rich="http://richfaces.org/rich"
+                template="/bpm/layout/template.xhtml">
+                
+	<ui:define name="domain-header">
+		#{messages['kz.bee.wx.bpm.ProcessDefinitionList']}
+	</ui:define>
+	<ui:define name="domain-body">
+
+		<h:form>
+		
+		<rich:dataTable var="definition" value="#{kz.bee.wx.bpm.processDefinitionList}">
+		
+			<rich:column selfSorted="true" sortBy="#{definition.name}" headerClass="left" style="width: 300px;">
+				<f:facet name="header">#{messages['kz.bee.wx.bpm.Name']}</f:facet>
+       		  	<span class="icon icon-process" style="margin-right: 5px;"/> <s:link value="#{messages['ProcessDefinition.'.concat(definition.name).concat('.').concat(definition.version).concat('.name')]}" action="#{businessProcess.createProcessNextTask}">
+       		  		<f:param name="processDefinitionName" value="#{definition.name}"/>
+       		  	</s:link>
+			</rich:column>
+		</rich:dataTable>
+
+		<h:outputText styleClass="wx-message-notfound" rendered="#{empty processDefinitionList}" value="#{messages['kz.bee.wx.bpm.ProcessListNotFound']}"/>
+
+		</h:form>
+
+	</ui:define>
+	
+</ui:composition>

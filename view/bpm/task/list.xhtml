@@ -1,0 +1,79 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+                xmlns:s="http://jboss.com/products/seam/taglib"
+                xmlns:ui="http://java.sun.com/jsf/facelets"
+                xmlns:f="http://java.sun.com/jsf/core"
+                xmlns:c="http://java.sun.com/jstl/core"
+                xmlns:fn="http://java.sun.com/jsp/jstl/functions"
+                xmlns:h="http://java.sun.com/jsf/html"
+                xmlns:a="http://richfaces.org/a4j"
+                xmlns:rich="http://richfaces.org/rich"
+                template="/bpm/layout/template.xhtml">
+
+	<ui:define name="domain-header">
+		#{messages['kz.bee.wx.bpm.TaskInstanceList']}
+	</ui:define>
+	
+	<ui:define name="domain-body">
+		<h:form id="mainForm">
+		
+			<!--
+			<rich:panel id="searchPanel" styleClass="theme6">
+		   		<f:facet name="header">#{messages['kz.bee.wx.bpm.SearchTaskInstanceList']}</f:facet>
+				<a:region>	
+				<s:decorate id="mixedField" style="float:left;" template="/layout/vertical-edit.xhtml">
+					<input placeholder="#{messages['kz.bee.wx.bpm.EnterSearchText']}" type="text" id="text" value="#{customTaskInstanceList.searchString}" class="input" style="width: 775px;" onkeypress="if(window.event.keyCode == 13) {getTaskList($('text').value); return false;}"/>
+				</s:decorate>
+				<div class="buttons" style="display: inline;">
+					<a:jsFunction name="getTaskList" action="search" reRender="taskInstanceList, pooledTaskInstanceList" status="globalStatus" ignoreDupResponses="true" ajaxSingle="true" oncomplete="showError()">
+						<a:actionparam name="param1" assignTo="#{customTaskInstanceList.searchString}"/> 
+					</a:jsFunction>
+					<button onclick="getTaskList($('text').value); return false;" class="button" style="margin-left: 10px; margin-top: 5px; height: 22px;">#{messages['kz.bee.wx.bpm.Search']}</button>
+					<button onclick="getTaskList(''); return false;" class="button" style="margin-left: -4px; margin-top: 5px; height: 22px;">#{messages['kz.bee.wx.bpm.Reset']}</button>
+				</div>
+			</a:region>
+			</rich:panel>
+			-->
+
+			<h4 class="srv-h4">#{messages['kz.bee.wx.bpm.TaskInstanceList']} (#{customTaskInstanceList.list().size()})</h4>
+			<group>
+			<ui:repeat var="ti" value="#{customTaskInstanceList.list()}">
+				<div class="task-list-row">
+					<div class="task-list-date"><h:outputText value="#{ti.create}"><s:convertDateTime type="date" pattern="dd.MM.yyyy"/></h:outputText></div>
+					<div class="task-list-task-cell" title="#{messages['ProcessDefinition.'.concat(ti.task.processDefinition.name).concat('.').concat(ti.task.processDefinition.version).concat('.tasks.').concat(ti.name).concat('.name')]}">
+						<div class="task-list-process-label process-label-#{ti.task.processDefinition.name}">#{ti.task.processDefinition.name}</div>
+						<s:link value="#{messages['ProcessDefinition.'.concat(ti.task.processDefinition.name).concat('.').concat(ti.task.processDefinition.version).concat('.tasks.').concat(ti.name).concat('.name')]}" action="#{businessProcess.beginTask}" taskInstance="#{ti}" styleClass="#{ti.start == null ? 'unread' : ''}" />
+					</div>
+					<s:fragment rendered="#{not empty ti.description or not empty ti.processInstance.key}">
+						<div class="task-list-process-cell">#{not empty ti.description ? ti.description : ti.processInstance.key}</div>
+					</s:fragment>
+				</div>
+			</ui:repeat>
+			<s:fragment rendered="#{empty customTaskInstanceList.list()}">
+				<div class="task-list-row">Нет задач</div>
+			</s:fragment>
+			</group>
+
+			<h4 class="srv-h4">#{messages['kz.bee.wx.bpm.PooledTaskInstanceList']} (#{customPooledTaskInstanceList.list().size()})</h4>
+			<group>
+			<ui:repeat var="ti" value="#{customPooledTaskInstanceList.list()}">
+				<div class="task-list-row">
+					<div class="task-list-date"><h:outputText value="#{ti.create}"><s:convertDateTime type="date" pattern="dd.MM.yyyy"/></h:outputText></div>
+					<div class="task-list-task-cell" title="#{messages['ProcessDefinition.'.concat(ti.task.processDefinition.name).concat('.').concat(ti.task.processDefinition.version).concat('.tasks.').concat(ti.name).concat('.name')]}">
+						<div class="task-list-process-label process-label-#{ti.task.processDefinition.name}">#{ti.task.processDefinition.name}</div>
+						<s:link value="#{messages['ProcessDefinition.'.concat(ti.task.processDefinition.name).concat('.').concat(ti.task.processDefinition.version).concat('.tasks.').concat(ti.name).concat('.name')]}" action="#{businessProcess.beginTask}" taskInstance="#{ti}" styleClass="#{ti.start == null ? 'unread' : ''}" />
+					</div>
+					<s:fragment rendered="#{not empty ti.description or not empty ti.processInstance.key}">
+						<div class="task-list-process-cell">#{not empty ti.description ? ti.description : ti.processInstance.key}</div>
+					</s:fragment>
+				</div>
+			</ui:repeat>
+			<s:fragment rendered="#{empty customPooledTaskInstanceList.list()}">
+				<div class="task-list-row">Нет задач</div>
+			</s:fragment>
+			</group>
+
+		</h:form>
+
+	</ui:define>
+	
+</ui:composition>

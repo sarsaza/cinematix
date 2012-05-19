@@ -1,0 +1,782 @@
+<!-- package kudos.sms.chartgenerator -->
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:c="http://java.sun.com/jstl/core"
+	xmlns:a="http://richfaces.org/a4j" template="/layout/template.xhtml">
+
+	<ui:define name="body">
+		<script type="text/javascript" language="JavaScript"
+			src="../js/AnyChart.js" />
+		<script type="text/javascript" language="JavaScript"
+			src="../js/AnyChartHTML5.js" />
+		<script type="text/javascript" src="../seam/resource/remoting/resource/remote.js" />
+		<script type="text/javascript" src="../seam/resource/remoting/interface.js?chartgenerator" />
+		<script type="text/javascript" src="../seam/resource/remoting/interface.js?showtable" />
+		<script type="text/javascript" language="JavaScript" src="../js/AnyChart.js" />
+		<script type="text/javascript" language="JavaScript" src="../js/AnyChartHTML5.js" />
+		<script type="text/javascript" language="JavaScript" src="../js/contentflow.js" />
+		<script type="text/javascript" language="JavaScript" src="../js/prototype.js" />
+		<style type="text/css">
+			.dr-mpnl-pnl {
+				overflow: auto !important
+			}
+			.rich-mpnl-body {
+				height: 92%;
+				width: 99%;
+				padding: 0px;
+			}
+			.rich-mpnl-body .content {
+				padding: 10px;
+			}
+		</style>
+		<script type="text/javascript" language="JavaScript" >
+		//<![CDATA[
+		
+		
+		AnyChart.renderingType = anychart.RenderingType.FLASH_PREFFERED; 
+       	AnyChart.loadHTML5Engine();
+
+       	var chart = new AnyChart('../swf/AnyChart.swf');
+    	chart.width = 800; 
+		chart.height = 600;
+		chart.addEventListener('pointSelect', onPointClick);
+		
+		AnyChart.ready(function() {
+			chart.write('drawChart');
+    	});
+
+		function onPointClick(e){
+			console.log("event: " + e);
+			var fullName = e.data.Attributes['fullName'];
+			console.log("fullName:" + fullName);
+			var a = fullName.split(" ");
+			var firstName = a[0];
+			console.log("firstName: "+firstName);
+			var lastName = a[1];
+			console.log("lastName: "+lastName);
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			console.log("begin: "+begin);
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			console.log("end: "+end);
+			console.log("method: "+ e.data.Attributes['methodName']);
+			if(e.data.Attributes['methodName'] == "bottomTeacherByCountOfRunningLessonStatus"){
+					Richfaces.showModalPanel('tablePanel');
+					jQuery("#drawChart").css("display", "none");
+					Seam.Component.getInstance("showtable").passiveTeacherInfo(firstName, lastName, begin, end, teachersCallback);
+				jQuery("#tableId tr[id != tableHeader]").remove();
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.lessonId']}</td>");
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.lessonBegin']}</td>");
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.lessonEnd']}</td>");
+				jQuery("#tableHeader td:nth-child(2)").text("#{messages['showtable.lessonId']}");
+				jQuery("#tableHeader td:nth-child(3)").text("#{messages['showtable.lessonBegin']}");
+				jQuery("#tableHeader td:nth-child(4)").text("#{messages['showtable.lessonEnd']}");
+				jQuery("#tableHeader td:nth-child(5)").remove();
+				jQuery("#tableHeader td:nth-child(6)").remove();
+			} else if(e.data.Attributes['methodName'] == "topTeacherByCountOfRunningLessonStatus"){
+					Richfaces.showModalPanel('tablePanel');
+					jQuery("#drawChart").css("display", "none");
+					Seam.Component.getInstance("showtable").activeTeacherInfo(firstName, lastName, begin, end, teachersCallback);
+				jQuery("#tableId tr[id != tableHeader]").remove();
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.lessonId']}</td>");
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.lessonBegin']}</td>");
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.lessonEnd']}</td>");
+				jQuery("#tableHeader td:nth-child(2)").text("#{messages['showtable.lessonId']}");
+				jQuery("#tableHeader td:nth-child(3)").text("#{messages['showtable.lessonBegin']}");
+				jQuery("#tableHeader td:nth-child(4)").text("#{messages['showtable.lessonEnd']}");
+				jQuery("#tableHeader td:nth-child(5)").remove();
+				jQuery("#tableHeader td:nth-child(6)").remove();
+			} else if(e.data.Attributes['methodName'] == "topStudentsByAverage" || e.data.Attributes['methodName'] == "bottomStudentsByAverage"){
+				Richfaces.showModalPanel('tablePanel');
+				jQuery("#drawChart").css("display", "none");
+				Seam.Component.getInstance("showtable").studentMarks(firstName, lastName, begin, end, studentMarksCallback);
+			jQuery("#tableId tr[id != tableHeader]").remove();
+			jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.teachersFullName']}</td>");
+			jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.date']}</td>");
+			jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.markValue']}</td>");
+			jQuery("#tableHeader td:nth-child(2)").text("#{messages['showtable.teacherFullName']}");
+			jQuery("#tableHeader td:nth-child(3)").text("#{messages['showtable.lessonBegin']}");
+			jQuery("#tableHeader td:nth-child(4)").text("#{messages['showtable.markValue']}");
+			jQuery("#tableHeader td:nth-child(5)").remove();
+			jQuery("#tableHeader td:nth-child(6)").remove();
+			} else if(e.data.Attributes['methodName'] == "topClassesByAverage" || e.data.Attributes['methodName'] == "bottomClassesByAverage"){
+					Richfaces.showModalPanel('tablePanel');
+					jQuery("#drawChart").css("display", "none");
+					Seam.Component.getInstance("showtable").classStudentMarks(fullName, begin, end, classStudentMarksCallback);
+				jQuery("#tableId tr[id != tableHeader]").remove();
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.studentsFullName']}</td>");
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.average']}</td>");
+				jQuery("#tableHeader td:nth-child(2)").text("#{messages['showtable.studentsFullName']}");
+				jQuery("#tableHeader td:nth-child(3)").text("#{messages['showtable.average']}");
+				jQuery("#tableHeader td:nth-child(4)").remove();
+				jQuery("#tableHeader td:nth-child(5)").remove();
+				jQuery("#tableHeader td:nth-child(6)").remove();
+			}else if(e.data.Attributes['methodName'] == "topLevelsByAverage" || e.data.Attributes['methodName'] == "bottomLevelsByAverage"){
+					Richfaces.showModalPanel('tablePanel');
+					jQuery("#drawChart").css("display", "none");
+					Seam.Component.getInstance("showtable").levelStudentMarks(fullName, begin, end, levelStudentMarksCallback);
+				jQuery("#tableId tr[id != tableHeader]").remove();
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.studentsFullName']}</td>");
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.average']}</td>");
+				jQuery("#tableHeader td:nth-child(2)").text("#{messages['showtable.studentsFullName']}");
+				jQuery("#tableHeader td:nth-child(3)").text("#{messages['showtable.average']}");
+				jQuery("#tableHeader td:nth-child(4)").remove();
+				jQuery("#tableHeader td:nth-child(5)").remove();
+				jQuery("#tableHeader td:nth-child(6)").remove();
+			} else if(e.data.Attributes['methodName'] == "topClassesByLate" || e.data.Attributes['methodName'] == "bottomClassesByLate"){
+					Richfaces.showModalPanel('tablePanel');
+					jQuery("#drawChart").css("display", "none");
+					Seam.Component.getInstance("showtable").classStudentsLate(fullName, begin, end, classStudentsLateCallback);
+				jQuery("#tableId tr[id != tableHeader]").remove();
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.lessonId']}</td>");
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.lessonBegin']}</td>");
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.lessonEnd']}</td>");
+				jQuery("#tableHeader td:nth-child(2)").text("#{messages['showtable.studentsFullName']}");
+				jQuery("#tableHeader td:nth-child(3)").text("#{messages['showtable.lessonBegin']}");
+				jQuery("#tableHeader td:nth-child(4)").text("#{messages['showtable.lateTime']}");
+				jQuery("#tableHeader td:nth-child(5)").remove();
+				jQuery("#tableHeader td:nth-child(6)").remove();
+			} else if(e.data.Attributes['methodName'] == "topStudentsByLate" || e.data.Attributes['methodName'] == "bottomStudentsByLate"){
+					Richfaces.showModalPanel('tablePanel');
+					jQuery("#drawChart").css("display", "none");
+					Seam.Component.getInstance("showtable").studentsLate(firstName, lastName, begin, end, studentsLateCallback);
+				jQuery("#tableId tr[id != tableHeader]").remove();
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.lessonId']}</td>");
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.lessonBegin']}</td>");
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.lateTime']}</td>");
+				jQuery("#tableHeader td:nth-child(2)").text("#{messages['showtable.lessonId']}");
+				jQuery("#tableHeader td:nth-child(3)").text("#{messages['showtable.lessonBegin']}");
+				jQuery("#tableHeader td:nth-child(4)").text("#{messages['showtable.lateTime']}");
+				jQuery("#tableHeader td:nth-child(5)").remove();
+				jQuery("#tableHeader td:nth-child(6)").remove();
+			} else if(e.data.Attributes['methodName'] == "topLevelsByLate" || e.data.Attributes['methodName'] == "bottomLevelsByLate"){
+					Richfaces.showModalPanel('tablePanel');
+					jQuery("#drawChart").css("display", "none");
+					Seam.Component.getInstance("showtable").levelStudentsLate(fullName, begin, end, levelStudentsLateCallback);
+				jQuery("#tableId tr[id != tableHeader]").remove();
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.lessonId']}</td>");
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.lessonBegin']}</td>");
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.lessonEnd']}</td>");
+				jQuery("#tableHeader td:nth-child(2)").text("#{messages['showtable.studentsFullName']}");
+				jQuery("#tableHeader td:nth-child(3)").text("#{messages['showtable.lessonBegin']}");
+				jQuery("#tableHeader td:nth-child(4)").text("#{messages['showtable.lateTime']}");
+				jQuery("#tableHeader td:nth-child(5)").remove();
+				jQuery("#tableHeader td:nth-child(6)").remove();
+			} else if(e.data.Attributes['methodName'] == "topStudentsByAbsense" || e.data.Attributes['methodName'] == "bottomStudentsByAbsense"){
+					Richfaces.showModalPanel('tablePanel');
+					jQuery("#drawChart").css("display", "none");
+					Seam.Component.getInstance("showtable").studentsAbsense(firstName, lastName, begin, end, studentsAbsenseCallback);
+				jQuery("#tableId tr[id != tableHeader]").remove();
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.lessonId']}</td>");
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.lessonBegin']}</td>");
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.lessonEnd']}</td>");
+				jQuery("#tableHeader td:nth-child(2)").text("#{messages['showtable.lessonId']}");
+				jQuery("#tableHeader td:nth-child(3)").text("#{messages['showtable.lessonBegin']}");
+				jQuery("#tableHeader td:nth-child(4)").text("#{messages['showtable.lessonEnd']}");
+				jQuery("#tableHeader td:nth-child(5)").remove();
+				jQuery("#tableHeader td:nth-child(6)").remove();
+			} else if(e.data.Attributes['methodName'] == "topClassesByAbsense" || e.data.Attributes['methodName'] == "bottomClassesByAbsense"){
+					Richfaces.showModalPanel('tablePanel');
+					jQuery("#drawChart").css("display", "none");
+					Seam.Component.getInstance("showtable").classStudentsAbsense(fullName, begin, end, classStudentsAbsenseCallback);
+				jQuery("#tableId tr[id != tableHeader]").remove();
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.studentsFullName']}</td>");
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.absenseCount']}</td>");
+				jQuery("#tableHeader td:nth-child(2)").text("#{messages['showtable.studentsFullName']}");
+				jQuery("#tableHeader td:nth-child(3)").text("#{messages['showtable.absenseCount']}");
+				jQuery("#tableHeader td:nth-child(4)").remove();
+				jQuery("#tableHeader td:nth-child(5)").remove();
+				jQuery("#tableHeader td:nth-child(6)").remove();
+			} else if(e.data.Attributes['methodName'] == "topLevelsByAbsense" || e.data.Attributes['methodName'] == "bottomLevelsByAbsense"){
+					Richfaces.showModalPanel('tablePanel');
+					jQuery("#drawChart").css("display", "none");
+					Seam.Component.getInstance("showtable").levelStudentsAbsense(fullName, begin, end, levelStudentsAbsenseCallback);
+				jQuery("#tableId tr[id != tableHeader]").remove();
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.studentsFullName']}</td>");
+				jQuery("#tableId tr[id = tableHeader]").append("<td>#{messages['showtable.absenseCount']}</td>");
+				jQuery("#tableHeader td:nth-child(2)").text("#{messages['showtable.studentsFullName']}");
+				jQuery("#tableHeader td:nth-child(3)").text("#{messages['showtable.absenseCount']}");
+				jQuery("#tableHeader td:nth-child(4)").remove();
+				jQuery("#tableHeader td:nth-child(5)").remove();
+				jQuery("#tableHeader td:nth-child(6)").remove();
+			}
+		
+		}
+		
+		function levelStudentsAbsenseCallback(res){
+			var i=0;
+			var j = new Array(res);
+			jQuery("#tableHeader td:nth-child(4)").remove();
+			jQuery("#tableHeader td:nth-child(5)").remove();
+			jQuery("#tableHeader td:nth-child(6)").remove();
+			jQuery("#tableHeader td:nth-child(7)").remove();
+			var theTable = document.getElementById('tableId');
+			console.log("j.size: " + res.length);
+			for(i = 0; i<res.length; i++){
+				var row = theTable.insertRow(i+1);
+
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var name = res[i][0];
+				var surname = res[i][1];
+				var fullname = name + " " + surname;
+				
+				cell1.innerHTML = i+1;
+				cell2.innerHTML = fullname;
+				cell3.innerHTML = res[i][2];
+			}
+		}		
+		function classStudentsAbsenseCallback(res){
+			var i=0;
+			var j = new Array(res);
+			jQuery("#tableHeader td:nth-child(4)").remove();
+			jQuery("#tableHeader td:nth-child(5)").remove();
+			jQuery("#tableHeader td:nth-child(6)").remove();
+			jQuery("#tableHeader td:nth-child(7)").remove();
+			var theTable = document.getElementById('tableId');
+			console.log("j.size: " + res.length);
+			for(i = 0; i<res.length; i++){
+				var row = theTable.insertRow(i+1);
+
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var name = res[i][0];
+				var surname = res[i][1];
+				var fullname = name + " " + surname;
+				
+				cell1.innerHTML = i+1;
+				cell2.innerHTML = fullname;
+				cell3.innerHTML = res[i][2];
+			}
+		}		
+		function studentsAbsenseCallback(res){
+			var i=0;
+			var j = new Array(res);
+			jQuery("#tableHeader td:nth-child(5)").remove();
+			jQuery("#tableHeader td:nth-child(6)").remove();
+			jQuery("#tableHeader td:nth-child(7)").remove();
+			var theTable = document.getElementById('tableId');
+			console.log("j.size: " + res.length);
+			for(i = 0; i<res.length; i++){
+				var row = theTable.insertRow(i+1);
+
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerHTML = i+1;
+				cell2.innerHTML = res[i][0];
+				cell3.innerHTML = res[i][1];
+				cell4.innerHTML = res[i][2];
+			}
+		}
+		function levelStudentsLateCallback(res){
+			var i=0;
+			var j = new Array(res);
+			jQuery("#tableHeader td:nth-child(5)").remove();
+			jQuery("#tableHeader td:nth-child(6)").remove();
+			jQuery("#tableHeader td:nth-child(7)").remove();
+			var theTable = document.getElementById('tableId');
+			console.log("j.size: " + res.length);
+			for(i = 0; i<res.length; i++){
+				var row = theTable.insertRow(i+1);
+
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+				var name = res[i][0];
+				var surname = res[i][1];
+				var fullname = name + " " + surname;
+				cell1.innerHTML = i+1;
+				cell2.innerHTML = fullname;
+				cell3.innerHTML = res[i][2];
+				cell4.innerHTML = res[i][3];
+			}
+		}
+		function studentsLateCallback(res){
+			var i=0;
+			var j = new Array(res);
+			jQuery("#tableHeader td:nth-child(5)").remove();
+			jQuery("#tableHeader td:nth-child(6)").remove();
+			jQuery("#tableHeader td:nth-child(7)").remove();
+			var theTable = document.getElementById('tableId');
+			console.log("j.size: " + res.length);
+			for(i = 0; i<res.length; i++){
+				var row = theTable.insertRow(i+1);
+
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerHTML = i+1;
+				cell2.innerHTML = res[i][0];
+				cell3.innerHTML = res[i][1];
+				cell4.innerHTML = res[i][2];
+			}
+		}
+		function classStudentsLateCallback(res){
+			var i=0;
+			var j = new Array(res);
+		//	jQuery("#tableHeader td:nth-child(4)").remove();
+			jQuery("#tableHeader td:nth-child(5)").remove();
+			jQuery("#tableHeader td:nth-child(6)").remove();
+			jQuery("#tableHeader td:nth-child(7)").remove();
+			var theTable = document.getElementById('tableId');
+			console.log("j.size: " + res.length);
+			for(i = 0; i<res.length; i++){
+				var row = theTable.insertRow(i+1);
+
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+				var name = res[i][0];
+				var surname = res[i][1];
+				var fullname = name + " " + surname;
+				cell1.innerHTML = i+1;
+				cell2.innerHTML = fullname;
+				cell3.innerHTML = res[i][2];
+				cell4.innerHTML = res[i][3];
+			}
+		}
+		function levelStudentMarksCallback(res){
+			var i=0;
+			jQuery("#tableHeader td:nth-child(4)").remove();
+			jQuery("#tableHeader td:nth-child(5)").remove();
+			jQuery("#tableHeader td:nth-child(6)").remove();
+			jQuery("#tableHeader td:nth-child(7)").remove();
+			var table = document.getElementById('tableId');
+			for(i=0; i<res.length; i++){
+				var row = table.insertRow(i+1);
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var name = res[i][0];
+				var surname = res[i][1];
+				var fullname = name + " " + surname;
+				cell1.innerHTML = i+1;
+				cell2.innerHTML = fullname;
+				cell3.innerHTML = res[i][2];
+			}
+		}
+		function classStudentMarksCallback(res){
+			var i=0;
+			jQuery("#tableHeader td:nth-child(4)").remove();
+			jQuery("#tableHeader td:nth-child(5)").remove();
+			jQuery("#tableHeader td:nth-child(6)").remove();
+			jQuery("#tableHeader td:nth-child(7)").remove();
+			var table = document.getElementById('tableId');
+			for(i=0; i<res.length; i++){
+				var row = table.insertRow(i+1);
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var name = res[i][0];
+				var surname = res[i][1];
+				var fullname = name + " " + surname;
+				cell1.innerHTML = i+1;
+				cell2.innerHTML = fullname;
+				cell3.innerHTML = res[i][2];
+			}
+		}
+		function studentMarksCallback(res){
+			var i=0;
+			jQuery("#tableHeader td:nth-child(5)").remove();
+			jQuery("#tableHeader td:nth-child(6)").remove();
+			jQuery("#tableHeader td:nth-child(7)").remove();
+			var table = document.getElementById('tableId');
+			for(i=0; i<res.length; i++){
+				var row = table.insertRow(i+1);
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+				var name = res[i][0];
+				var surname = res[i][1];
+				var fullname = name + " " + surname;
+				cell1.innerHTML = i+1;
+				cell2.innerHTML = fullname;
+				cell3.innerHTML = res[i][2];
+				cell4.innerHTML = res[i][3];
+			}
+		}
+
+		
+		function teachersCallback(res){
+			var i=0;
+			var j = new Array(res);
+		//	jQuery("#tableHeader td:nth-child(4)").remove();
+			jQuery("#tableHeader td:nth-child(5)").remove();
+			jQuery("#tableHeader td:nth-child(6)").remove();
+			jQuery("#tableHeader td:nth-child(7)").remove();
+			var theTable = document.getElementById('tableId');
+			console.log("j.size: " + res.length);
+			for(i = 0; i<res.length; i++){
+				var row = theTable.insertRow(i+1);
+
+				var cell1 = row.insertCell(0);
+				var cell2 = row.insertCell(1);
+				var cell3 = row.insertCell(2);
+				var cell4 = row.insertCell(3);
+
+				cell1.innerHTML = i+1;
+				cell2.innerHTML = res[i][0];
+				cell3.innerHTML = res[i][1];
+				cell4.innerHTML = res[i][2];
+				
+			}
+			
+		}
+		
+		function setBegin(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").topTeacherByCountOfRunningLessonStatus(begin, end, topTeacherByCountOfRunningLessonStatusCallback);
+			Seam.Component.getInstance("chartgenerator").bottomTeacherByCountOfRunningLessonStatus(begin, end, bottomTeacherByCountOfRunningLessonStatusCallback);
+			Seam.Component.getInstance("chartgenerator").topStudentsByAverage(begin, end, topStudentsByAverageCallback);
+			Seam.Component.getInstance("chartgenerator").bottomStudentsByAverage(begin, end, bottomStudentsByAverageCallback);
+			Seam.Component.getInstance("chartgenerator").topClassesByAverage(begin, end, topClassesByAverageCallback);
+			Seam.Component.getInstance("chartgenerator").bottomClassesByAverage(begin, end, bottomClassesByAverageCallback);
+			Seam.Component.getInstance("chartgenerator").topLevelsByAverage(begin, end, topLevelsByAverageCallback);
+			Seam.Component.getInstance("chartgenerator").bottomLevelsByAverage(begin, end, bottomLevelsByAverageCallback);
+			Seam.Component.getInstance("chartgenerator").topStudentsByLate(begin, end, topStudentsByLateCallback);
+			Seam.Component.getInstance("chartgenerator").bottomStudentsByLate(begin, end, bottomStudentsByLateCallback);
+			Seam.Component.getInstance("chartgenerator").topClassesByLate(begin, end, topClassesByLateCallback);
+			Seam.Component.getInstance("chartgenerator").bottomClassesByLate(begin, end, bottomClassesByLateCallback);
+			Seam.Component.getInstance("chartgenerator").topLevelsByLate(begin, end, topLevelsByLateCallback);
+			Seam.Component.getInstance("chartgenerator").bottomLevelsByLate(begin, end, bottomLevelsByLateCallback);
+			Seam.Component.getInstance("chartgenerator").topStudentsByAbsense(begin, end, topStudentsByAbsenseCallback);
+			Seam.Component.getInstance("chartgenerator").bottomStudentsByAbsense(begin, end, bottomStudentsByAbsenseCallback);
+			Seam.Component.getInstance("chartgenerator").topClassesByAbsense(begin, end, topClassesByAbsenseCallback);
+			Seam.Component.getInstance("chartgenerator").bottomClassesByAbsense(begin, end, bottomClassesByAbsenseCallback);
+			Seam.Component.getInstance("chartgenerator").topLevelsByAbsense(begin, end, topLevelsByAbsenseCallback);
+			Seam.Component.getInstance("chartgenerator").bottomLevelsByAbsense(begin, end, bottomLevelsByAbsenseCallback);
+			
+		}
+
+		function bottomLevelsByAbsenseCallback(res){
+			chart.setData(res);
+		}
+
+		function topLevelsByAbsenseCallback(res){
+			chart.setData(res);
+		}
+
+		function bottomClassesByAbsenseCallback(res){
+			chart.setData(res);
+		}
+
+		function topClassesByAbsenseCallback(res){
+			chart.setData(res);
+		}
+
+		function bottomStudentsByAbsenseCallback(res){
+			chart.setData(res);
+		}
+
+		function topStudentsByAbsenseCallback(res){
+			chart.setData(res);
+		}
+
+		function bottomLevelsByLateCallback(res){
+			chart.setData(res);
+		}
+
+		function topLevelsByLateCallback(res){
+			chart.setData(res);
+		}
+
+		function bottomClassesByLateCallback(res){
+			chart.setData(res);
+		}
+
+		function topClassesByLateCallback(res){
+			chart.setData(res);
+		}
+		
+		function topTeacherByCountOfRunningLessonStatusCallback(res){
+			chart.setData(res);
+		}
+
+		function bottomTeacherByCountOfRunningLessonStatusCallback(res){
+			chart.setData(res);
+		}
+		
+		function topStudentsByAverageCallback(res){
+			chart.setData(res);
+		}
+
+		function bottomStudentsByAverageCallback(res){
+			chart.setData(res);
+		}
+
+		function topClassesByAverageCallback(res){
+			chart.setData(res);
+		}
+
+		function bottomClassesByAverageCallback(res){
+			chart.setData(res);
+		}
+
+		function topLevelsByAverageCallback(res){
+			chart.setData(res);
+		}
+
+		function bottomLevelsByAverageCallback(res){
+			chart.setData(res);
+		}
+		function topStudentsByLateCallback(res){
+			chart.setData(res);
+		}
+
+		function bottomStudentsByLateCallback(res) {
+			chart.setData(res);
+		}
+
+		var width = jQuery(window).width();
+		var height = jQuery(document).height();
+
+		jQuery("#scrollDiv").css("height",height);
+		jQuery("#scrollDiv").css("width",width);
+
+
+		function hola(){
+			alert("ahoj");
+		}
+
+		function bottomLevelsByAbsense(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").bottomLevelsByAbsense(begin, end, bottomLevelsByAbsenseCallback);
+		}
+
+		function topTeacherByCountOfRunningLessonStatus(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").topTeacherByCountOfRunningLessonStatus(begin, end, topTeacherByCountOfRunningLessonStatusCallback);
+		}
+		function bottomTeacherByCountOfRunningLessonStatus(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").bottomTeacherByCountOfRunningLessonStatus(begin, end, bottomTeacherByCountOfRunningLessonStatusCallback);
+		}
+		function topStudentsByAverage(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").topStudentsByAverage(begin, end, topStudentsByAverageCallback);
+		}
+		function bottomStudentsByAverage(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").bottomStudentsByAverage(begin, end, bottomStudentsByAverageCallback);
+		}
+		function topClassesByAverage(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").topClassesByAverage(begin, end, topClassesByAverageCallback);
+		}
+		function bottomClassesByAverage(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").bottomClassesByAverage(begin, end, bottomClassesByAverageCallback);
+		}
+		function topLevelsByAverage(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").topLevelsByAverage(begin, end, topLevelsByAverageCallback);
+		}
+		function bottomLevelsByAverage(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").bottomLevelsByAverage(begin, end, bottomLevelsByAverageCallback);
+		}
+		function topStudentsByLate(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").topStudentsByLate(begin, end, topStudentsByLateCallback);
+		}
+		function bottomStudentsByLate(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").bottomStudentsByLate(begin, end, bottomStudentsByLateCallback);
+		}
+		function topClassesByLate(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").topClassesByLate(begin, end, topClassesByLateCallback);
+		}
+		function bottomClassesByLate(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").bottomClassesByLate(begin, end, bottomClassesByLateCallback);
+		}
+		function topLevelsByLate(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").topLevelsByLate(begin, end, topLevelsByLateCallback);
+		}
+		function bottomLevelsByLate(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").bottomLevelsByLate(begin, end, bottomLevelsByLateCallback);
+		}
+		function topStudentsByAbsense(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").topStudentsByAbsense(begin, end, topStudentsByAbsenseCallback);
+			}
+		function	bottomStudentsByAbsense(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").bottomStudentsByAbsense(begin, end, bottomStudentsByAbsenseCallback);
+			}
+		function	topClassesByAbsense(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").topClassesByAbsense(begin, end, topClassesByAbsenseCallback);
+		}
+		function bottomClassesByAbsense(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").bottomClassesByAbsense(begin, end, bottomClassesByAbsenseCallback);
+		}
+		function topLevelsByAbsense(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").topLevelsByAbsense(begin, end, topLevelsByAbsenseCallback);
+		}
+		function bottomLevelsByAbsense(){
+			var begin = jQuery("input[id$=beginDateInputDate]").val();
+			var end = jQuery("input[id$=endDateInputDate]").val();
+			Seam.Component.getInstance("chartgenerator").bottomLevelsByAbsense(begin, end, bottomLevelsByAbsenseCallback);
+		}
+		function displayChart(){
+			jQuery("#drawChart").css("display", "initial");
+		}
+
+		//]]>
+			
+	</script>
+		<s:decorate id="begin" template="/layout/edit.xhtml">
+			<ui:define id="beginn" name="label">#{messages['chartgenerator.begin']}:</ui:define>
+			<rich:calendar id="beginDate" datePattern="dd.MM.yyyy" required="true" value="#{chartgenerator.getMonthEarly()}" />
+		</s:decorate>
+		<s:decorate id="end">
+			<ui:define id="endd" name="label">#{messages['chartgenerator.end']}:</ui:define>
+			<rich:calendar id="endDate" datePattern="dd.MM.yyyy" required="true" value="#{chartgenerator.getCurrentDate()}"/>
+		</s:decorate>
+		<div id="scrollDiv" class="background" style="width: 780px; height: 150px; white-space: nowrap; overflow-x: scroll; border: 0; padding: 10px;">
+			<img src="../img/chartImages/first.png" alt="topTeacherByCountOfRunningLessonStatus" 
+				title="#{messages['chartgenerator.topTeacherByCountOfRunningLessonStatus']}" onclick="javascripit:topTeacherByCountOfRunningLessonStatus()" 
+				onmousedown="javascript:topTeacherByCountOfRunningLessonStatus()" height="120px" width="160px" id="1"/>
+			<img src="../img/chartImages/first.png" title="#{messages['chartgenerator.bottomTeacherByCountOfRunningLessonStatus']}" 
+				alt="bottomTeacherByCountOfRunningLessonStatus" height="120px" width="160px" onclick="javascripit:bottomTeacherByCountOfRunningLessonStatus()" 
+				onmousedown="javascript:bottomTeacherByCountOfRunningLessonStatus()" id="2"/>
+			<img id="3" src="../img/chartImages/pie.png" alt="topStudentsByAverage" 
+				title="#{messages['chartgenerator.topStudentsByAverage']}" height="120px" width="160px" onclick="javascripit:topStudentsByAverage()"
+				onmousedown="javascript:topStudentsByAverage()"/>
+				
+			<img id="4" src="../img/chartImages/pie.png" alt="bottomStudentsByAverage" 
+				title="#{messages['chartgenerator.bottomStudentsByAverage']}" height="120px" width="160px" onclick="javascripit:bottomStudentsByAverage()"
+				onmousedown="javascript:bottomStudentsByAverage()"/>
+				
+			<img id="5" src="../img/chartImages/pie.png" alt="topClassesByAverage" 
+				title="#{messages['chartgenerator.topClassesByAverage']}" height="120px" width="160px" onclick="javascripit:topClassesByAverage()"
+				onmousedown="javascript:topClassesByAverage()"/>
+				
+			<img id="6" src="../img/chartImages/pie.png" alt="bottomClassesByAverage" 
+				title="#{messages['chartgenerator.bottomClassesByAverage']}" height="120px" width="160px" onclick="javascripit:bottomClassesByAverage()"
+				onmousedown="javascript:bottomClassesByAverage()"/>
+				
+			<img id="7" src="../img/chartImages/levelColumn.png" alt="topLevelsByAverage" 
+				title="#{messages['chartgenerator.topLevelsByAverage']}" height="120px" width="160px" onclick="javascripit:topLevelsByAverage()"
+				onmousedown="javascript:topLevelsByAverage()"/>
+				
+			<img id="8" src="../img/chartImages/levelColumn.png" alt="bottomLevelsByAverage" 
+				title="#{messages['chartgenerator.bottomLevelsByAverage']}" height="120px" width="160px" onclick="javascripit:bottomLevelsByAverage()"
+				onmousedown="javascript:bottomLevelsByAverage()"/>
+				
+			<img id="9" src="../img/chartImages/column.png" alt="topStudentsByLate" 
+				title="#{messages['chartgenerator.topStudentsByLate']}" height="120px" width="160px" onclick="javascripit:topStudentsByLate()"
+				onmousedown="javascript:topStudentsByLate()"/>
+				
+			<img id="10" src="../img/chartImages/column.png" alt="bottomStudentsByLate" 
+				title="#{messages['chartgenerator.bottomStudentsByLate']}" height="120px" width="160px" onclick="javascripit:bottomStudentsByLate()"
+				onmousedown="javascript:bottomStudentsByLate()"/>
+				
+			<img id="11" src="../img/chartImages/cone.png" alt="topClassesByLate" 
+				title="#{messages['chartgenerator.topClassesByLate']}" height="120px" width="160px" onclick="javascripit:topClassesByLate()"
+				onmousedown="javascript:topClassesByLate()"/>
+				
+			<img id="12" src="../img/chartImages/cone.png" alt="bottomClassesByLate" 
+				title="#{messages['chartgenerator.bottomClassesByLate']}" height="120px" width="160px" onclick="javascripit:bottomClassesByLate()"
+				onmousedown="javascript:bottomClassesByLate()"/>
+				
+			<img id="13" src="../img/chartImages/cone.png" alt="topLevelsByLate" 
+				title="#{messages['chartgenerator.topLevelsByLate']}" height="120px" width="160px" onclick="javascripit:topLevelsByLate()"
+				onmousedown="javascript:topLevelsByLate()"/>
+				
+			<img id="14" src="../img/chartImages/cone.png" alt="bottomLevelsByLate" 
+				title="#{messages['chartgenerator.bottomLevelsByLate']}" height="120px" width="160px" onclick="javascripit:bottomLevelsByLate()"
+				onmousedown="javascript:bottomLevelsByLate()"/>
+				
+			<img id="15" src="../img/chartImages/column.png" alt="topStudentsByAbsense" 
+				title="#{messages['chartgenerator.topStudentsByAbsense']}" height="120px" width="160px" onclick="javascripit:topStudentsByAbsense()"
+				onmousedown="javascript:topStudentsByAbsense()"/>
+				
+			<img id="16" src="../img/chartImages/column.png" alt="bottomStudentsByAbsense" 
+				title="#{messages['chartgenerator.bottomStudentsByAbsense']}" height="120px" width="160px" onclick="javascripit:bottomStudentsByAbsense()"
+				onmousedown="javascript:bottomStudentsByAbsense()"/>
+				
+			<img id="17" src="../img/chartImages/column.png" alt="topClassesByAbsense" 
+				title="#{messages['chartgenerator.topClassesByAbsense']}" height="120px" width="160px" onclick="javascripit:topClassesByAbsense()"
+				onmousedown="javascript:topClassesByAbsense()" />
+				
+			<img id="18" src="../img/chartImages/column.png" alt="bottomClassesByAbsense" 
+				title="#{messages['chartgenerator.bottomClassesByAbsense']}" height="120px" width="160px" onclick="javascripit:bottomClassesByAbsense()"
+				onmousedown="javascript:bottomClassesByAbsense()"/>
+				
+			<img id="19" src="../img/chartImages/column.png" alt="topLevelsByAbsense" 
+				title="#{messages['chartgenerator.topLevelsByAbsense']}" height="120px" width="160px" onclick="javascripit:topLevelsByAbsense()"
+				onmousedown="javascript:topLevelsByAbsense()"/>
+				
+			<img id="20" src="../img/chartImages/column.png" alt="bottomLevelsByAbsense" 
+				title="#{messages['chartgenerator.bottomLevelsByAbsense']}" height="120px" width="160px" onclick="javascripit:bottomLevelsByAbsense()"
+				onmousedown="javascript:bottomLevelsByAbsense()">
+			<a:support event="onclick" eventsQueue="globalQueue" ajaxSingle="true" reRender="chartPanel" />
+			</img>
+		</div>
+		<br />
+		<br />
+		<br />
+		<br />
+		<br />
+		
+	<a:outputPanel id="chartPanel" >
+		<div id="drawChart" />		
+	</a:outputPanel>
+	<rich:modalPanel id="tablePanel" width="700" autosized="true" >
+		<f:facet name="header">
+			#{messages['showtable.table']}
+		</f:facet>
+		<f:facet name="controls">
+			<h:graphicImage value="../img/del.png" style="cursor: pointer" onclick="Richfaces.hideModalPanel('tablePanel'),displayChart();" />
+		</f:facet>
+		<div style="width:690px;height:500px;overflow:auto;">
+			<table id="tableId" border="1">
+				<tr id="tableHeader">
+					<td>№</td>
+				</tr>
+			</table>
+		</div>
+		</rich:modalPanel>
+	</ui:define>
+</ui:composition>

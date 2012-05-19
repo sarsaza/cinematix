@@ -1,0 +1,14 @@
+package Permissions;
+
+import java.security.Principal;
+
+import org.jboss.seam.security.permission.PermissionCheck;
+import org.jboss.seam.security.Role;
+
+rule "Grant all permissions to role administrator"
+  when
+    r:Role( name == "administrator" )
+    c:PermissionCheck(granted == false)
+  then
+    c.grant();
+end

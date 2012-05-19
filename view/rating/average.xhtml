@@ -1,0 +1,101 @@
+<!-- package kz.bee.bim.average -->
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:c="http://java.sun.com/jstl/core"
+	xmlns:a="http://richfaces.org/a4j" template="/layout/template.xhtml">
+
+
+	<ui:define name="body">
+		<script type="text/javascript" language="JavaScript"
+			src="#{request.contextPath}/rating/swf/AnyChart.js" />
+		<script type="text/javascript" language="JavaScript"
+			src="#{request.contextPath}/rating/swf/AnyChartHTML5.js" />
+		<cbody>
+		<div class="stage-form">
+			<h2>Мониторинг Школ и Школьников</h2>
+			<p>Здесь вы можете узнать о школьниках почти всю информацию.</p>
+			<div class="panel" style="padding-right: 300px;">
+				<div style="width: 100%; float: left;">
+					<h:form id="mainForm">
+					<label>Учебное заведение</label>
+						<h:selectOneMenu id="school" value="#{kz.bee.bim.rating.average.schoolName}">
+							<s:selectItems id="select" var="s"
+								value="#{kz.bee.bim.rating.average.schools}"
+								noSelectionLabel="Выберите школу..." itemValue="#{s.name}"
+								label="#{s}" />
+							<a:support event="onchange" oncomplete="updateData()" action="#{kz.bee.bim.rating.average.averageChart()}"
+								status="globalStatus" ajaxSingle="true" reRender="xmlOP"/>
+							
+						</h:selectOneMenu>
+					<h3 class="emp">№1 Таблица</h3>
+						<div id="container" />
+						<br />
+						<h3 class="emp">№2 Таблица</h3>
+						<div id="container1" />
+						<br />
+						
+					<a:outputPanel ajaxRendered="true"> 
+						<h:inputText id="hidden" value="#{kz.bee.bim.rating.average.schoolName}" />
+						<a:jsFunction name="ajaxRequest" reRender="xmlOP" oncomplete="callback()" action="#{kz.bee.bim.rating.average.classAverage()}"
+								status="globalStatus" eventsQueue="globalQueue"/>
+					</a:outputPanel>
+					<a:outputPanel id="xmlOP">
+					<!-- style="display:none"  -->
+						<h:inputText id="hiddenResult" value="#{kz.bee.bim.rating.average.xml}" />
+					</a:outputPanel>
+
+					</h:form>
+					
+					<a:outputPanel id="updateOP" ajaxRendered="true">
+						<script type="text/javascript" language="javascript">
+						function some(){
+							var data = '#{kz.bee.bim.rating.average.classAverage()}';
+							chart1.setData(data);
+
+							}
+						console.log("updateOP rendered");
+						</script>
+					</a:outputPanel>
+					<script type="text/javascript" language="javascript">
+					function updateData() {
+						chart1.setData(jQuery("[id=mainForm:hiddenResult]").val());
+						console.log("updateData()");
+					}
+					function callback(){
+						chart1.setData(jQuery("[id=mainForm:hiddenResult]").val());
+						chart1.refresh();
+						console.log("callback()");
+					}
+					function onPointClick(e){
+						var v = e.data.Attributes['var'];
+						jQuery("[id=mainForm:hidden]").val(v);
+						ajaxRequest();
+						console.log("onPointClick()");
+					}
+					
+					</script>
+					</div>
+				<div class="clear"></div>
+			</div>
+		</div>
+		</cbody>
+		<script type="text/javascript" language="javascript"> 
+
+       			AnyChart.renderingType = anychart.RenderingType.FLASH_PREFFERED; 
+	           	AnyChart.loadHTML5Engine();
+
+	           	var chart1 = new AnyChart('./swf/AnyChart.swf');
+	        	chart1.width = 800; 
+				chart1.height = 600;
+				chart1.addEventListener('pointClick', onPointClick);
+
+	        	AnyChart.ready(function() {
+					chart1.write('container');
+	           });
+		</script>
+	</ui:define>
+</ui:composition>

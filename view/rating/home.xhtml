@@ -1,0 +1,91 @@
+<!-- package kz.bee.bim.rating -->
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:c="http://java.sun.com/jstl/core"
+	xmlns:a="http://richfaces.org/a4j" template="/layout/template.xhtml">
+
+
+	<ui:define name="body">
+		<script type="text/javascript" language="JavaScript"
+			src="#{request.contextPath}/chart/swf/AnyChart.js" />
+		<script type="text/javascript" language="JavaScript"
+			src="#{request.contextPath}/chart/swf/AnyChartHTML5.js" />
+
+		<cbody>
+		<div class="stage-form">
+			<h2>Мониторинг Школ и Школьников</h2>
+			<p>Здесь вы можете узнать о школьниках почти всю информацию.</p>
+			<div class="panel" style="padding-right: 300px;">
+				<div style="width: 100%; float: left;">
+					<h3 class="emp">Школа</h3>
+					<h:form id="form1">
+						<h:panelGrid columns="2" columnClasses="col,col" width="400px">
+							<c:forEach var="s" items="#{kz.bee.kudos.lrs.schoolpage.schools}">
+								<rich:panelMenu width="200px" mode="ajax"
+									iconExpandedGroup="triangleDown" iconCollapsedGroup="triangle"
+									iconExpandedTopGroup="chevronUp" iconGroupTopPosition="right"
+									iconCollapsedTopGroup="chevronDown">
+									<rich:panelMenuGroup label="#{s.name}">
+										<c:forEach var="y"
+											items="#{kz.bee.kudos.lrs.schoolpage.years}">
+											<rich:panelMenuGroup label="#{y.value}">
+												<c:forEach var="g"
+													items="#{kz.bee.kudos.lrs.schoolpage.groups}">
+													<rich:panelMenuGroup label="#{g.value}">
+														<c:forEach var="c"
+															items="#{kz.bee.kudos.lrs.schoolpage.classes}">
+															<rich:panelMenuItem label="#{c.value}"
+																action="#{kz.bee.bim.rating.markratio.getChartForValueTwo()}"
+																reRender="markChart"
+																oncomplete="javascript:Richfaces.showModalPanel('charts', {center:'10px', left:'300px', height:'500px', width:'700px'})">
+																<f:param name="clazzName"
+																	value="#{s.name}-#{y.value}-#{g.value}-#{c.value}" />
+															</rich:panelMenuItem>
+														</c:forEach>
+													</rich:panelMenuGroup>
+												</c:forEach>
+											</rich:panelMenuGroup>
+										</c:forEach>
+									</rich:panelMenuGroup>
+								</rich:panelMenu>
+							</c:forEach>
+						</h:panelGrid>
+					</h:form>
+					<h:form id="form3">
+						<rich:modalPanel id="charts" autosized="true" headerClass="header"
+							label="Mark Table">
+							<a:commandLink value="CLOSE THIS PANEL"
+								onclick="javascript:Richfaces.hideModalPanel('charts')" />
+							<div id="container" />
+						</rich:modalPanel>
+					</h:form>
+					<s:div id="markChart" />
+				</div>
+				<div class="clear"></div>
+			</div>
+		</div>
+		</cbody>
+		<script type="text/javascript" language="javascript"> 
+	           	AnyChart.renderingType = anychart.RenderingType.FLASH_PREFFERED; 
+	           	AnyChart.loadHTML5Engine();
+	   			var chart = new AnyChart('./swf/AnyChart.swf');
+	   			chart.setData('#{kz.bee.bim.rating.markratio.generateChart()}');
+				chart.width = 700; 
+				chart.height = 500;
+
+				var chart1 = new AnyChart('./swf/AnyChart.swf');
+	   			chart1.setData('#{kz.bee.bim.rating.markratio.getChartForValueTwo()}');
+				chart1.width = 700; 
+				chart1.height = 500; 
+			
+	        	AnyChart.ready(function() {
+	        	   chart.write('markChart');
+	        	   chart1.write('container');
+	           });
+		</script>
+	</ui:define>
+</ui:composition>

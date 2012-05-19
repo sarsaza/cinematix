@@ -1,0 +1,144 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml" 
+	xmlns:s="http://jboss.com/products/seam/taglib" 
+	xmlns:ui="http://java.sun.com/jsf/facelets" 
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html" 
+	xmlns:rich="http://richfaces.org/rich" 
+	xmlns:a="http://richfaces.org/a4j" 
+	xmlns:bpm="http://bee.kz/wx/bpm"
+	xmlns:c="http://java.sun.com/jstl/core" 
+	template="/bpm/layout/template.xhtml">
+
+	<ui:define name="domain-header">
+		#{messages['ProcessDefinition.'.concat(taskInstance.task.processDefinition.name).concat('.').concat(taskInstance.task.processDefinition.version).concat('.tasks.').concat(taskInstance.name).concat('.name')]}
+		<p>#{messages['ProcessDefinition.'.concat(taskInstance.task.processDefinition.name).concat('.').concat(taskInstance.task.processDefinition.version).concat('.name')]}</p>			
+	</ui:define>
+	
+	<ui:define name="domain-body">
+
+		<h:form id="mainForm" class="panel-grid">
+	
+			<ui:insert name="task-body"/>
+			
+			<s:fragment rendered="#{not taskInstance.hasEnded()}">
+				<group style="float:left">
+					<ui:insert name="task-transitions"/>
+				</group>	
+				
+				<rich:modalPanel id="transitionWaitPanel" style="text-align:center" styleClass="transitionWaitPanel">
+					<h:graphicImage value="/img/transition-loader.gif"/>
+				</rich:modalPanel>
+			</s:fragment>
+
+			<div style="clear: both" />
+
+			<div class="right-toolbar">
+				<div class="right-toolbar-item"><a href="javascript: showTaskList();"><span class="icon icon-task"/></a></div>
+				<div class="right-toolbar-item"><a href="javascript: showDiagram();"><span class="icon icon-process-diagram"/></a></div>
+			</div>
+		 	
+			<a:jsFunction name="setShowTaskList" action="#{bpm.showTaskList()}" ajaxSingle="true" reRender="taskList" status="globalStatus" eventsQueue="globalQueue" ignoreDupResponses="true" oncomplete="showModal('div[id=mainForm:taskList]')"/>
+			<a:jsFunction name="setShowDiagram" action="#{bpm.showDiagram()}" ajaxSingle="true" reRender="diagram" status="globalStatus" eventsQueue="globalQueue" ignoreDupResponses="true" oncomplete="showModal('div[id=mainForm:diagram]');makeUpDiagram();"/>
+		
+			<div id="curtain"></div>
+
+			<s:div id="diagram" styleClass="modal-panel">
+			<style>
+				.wx-dv .node h3 {
+					display: none;
+				}
+				.wx-dv .node span{
+					white-space: normal !important;
+					overflow-x: visible !important;
+					margin-top: 5px;
+				}
+			</style>
+			<rich:panel styleClass="dropshadow modal-panel-content" rendered="#{bpm.showDiagram}">	 	
+				<f:facet name="header">
+					<div style="float: left"> #{messages['ProcessDefinition.'.concat(processInstance.processDefinition.name).concat('.').concat(processInstance.processDefinition.version).concat('.name')]} / #{processInstance.id} / Диаграмма  </div>
+
+					<div style="float: right; margin-top: 3px; margin-right: 4px;"><a href="javascript:hideModal('div[id=mainForm:diagram]')"><span class="icon icon-folder-up"/></a></div>
+					<div style="float: right; margin-right: 10px; margin-left: 7px; margin-top: 3px; height: 14px; border-left: 1px dotted #CCC;"/>
+					<div style="float: right; margin-top: 1px; margin-right: 4px;"><a href="#{request.contextPath}/bpm/diagram/process.diagram.full.seam?cid=#{conversation.id}" target="_blank"><span class="icon icon-fullscreen"/></a></div>
+				</f:facet>
+				<div style="height: 440px;">
+				<ui:include src="/bpm/diagram/process.diagram.xhtml" />
+				</div>		       			
+			</rich:panel>
+			</s:div>
+			
+			<s:div id="taskList" styleClass="modal-panel" >
+			<rich:panel styleClass="dropshadow modal-panel-content" rendered="#{bpm.showTaskList}">	 	
+				<f:facet name="header">
+					<div style="float: left"> #{messages['ProcessDefinition.'.concat(processInstance.processDefinition.name).concat('.').concat(processInstance.processDefinition.version).concat('.name')]} / #{processInstance.id} / Задачи  </div>
+
+					<div style="float: right; margin-top: 1px; margin-right: 4px;"><a href="javascript:hideModal('div[id=mainForm:taskList]')"><span class="icon icon-folder-up"/></a></div>
+				</f:facet>
+				<div style="overflow: auto; overflow-x: hidden; height: 440px;">
+				<ui:include src="/bpm/process/task.list.xhtml" />
+				</div>		       			
+			</rich:panel>
+			</s:div>
+			
+			<script type="text/javascript">
+			//<![CDATA[
+				var isShowTaskList = false;
+				function showTaskList(){
+					if(!isShowTaskList){
+						setShowTaskList();
+						isShowTaskList = true;
+					}
+					else{
+						showModal('div[id=mainForm:taskList]');
+					}
+				}
+				var isShowDiagram = false;
+				function showDiagram(){
+					if(!isShowDiagram){
+						setShowDiagram();
+						isShowDiagram = true;
+					}
+					else{
+						showModal('div[id=mainForm:diagram]')
+					}
+				}
+				function showModal(selector){
+					jQuery('#notepad').css('height', '99%');
+					jQuery('#curtain').fadeIn(150);
+					jQuery(selector).fadeIn(150);
+				}
+				function hideModal(selector){
+					jQuery('#curtain').fadeOut();
+					jQuery(selector).fadeOut();
+				}
+			//]]>
+			</script>
+			<script type="text/javascript">
+			//<![CDATA[
+				function prevent(){
+					jQuery("group .button:not(.no-prevent)").each(function() {
+							jQuery(this).mouseup(function(e){
+								if(e.which === 1) {
+									Richfaces.showModalPanel('transitionWaitPanel', {height:'50px'});		
+								}
+							});
+					});
+				}	
+				function makeUpDiagram(){
+					jQuery('.wx-dv .canvas div[title*="to"]').css('display','none');
+				}	
+				function scrollToInvalid(){
+					jQuery('html, body').animate({scrollTop:jQuery('.invalid').offset().top-15}, 'slow');
+				}
+				jQuery(document).ready(function() {
+					scrollToInvalid();
+					prevent();
+				});
+			//]]>
+			</script>		
+
+		</h:form>
+
+	</ui:define>
+
+</ui:composition>

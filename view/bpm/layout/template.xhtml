@@ -1,0 +1,35 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+    xmlns:s="http://jboss.com/products/seam/taglib"
+    xmlns:ui="http://java.sun.com/jsf/facelets"
+    xmlns:f="http://java.sun.com/jsf/core"
+    xmlns:h="http://java.sun.com/jsf/html"
+    xmlns:rich="http://richfaces.org/rich"
+    template="/layout/template.xhtml">
+    <ui:define name="sub-menu">
+		<div class="panel">
+			<h4 style="color: #d9b34b;">#{messages['kz.bee.wx.menu.labels.parts']}</h4>
+			<ul>
+				<li><span class="badge">#{customTaskInstanceList.list().size() + customPooledTaskInstanceList.list().size()}</span><s:link propagation="none" view="/bpm/task/list.xhtml" value="#{messages['kz.bee.wx.menu.labels.Tasks']}" rendered="#{identity.loggedIn}" styleClass="#{menuSelector.submenu == 'Tasks' ? 'selected' : '' }"/></li>
+				<li><span class="badge">#{customTaskInstanceList.listNonSignalling().size() + customPooledTaskInstanceList.listNonSignalling().size()}</span><s:link propagation="none" view="/bpm/task/notification.list.xhtml" value="#{messages['kz.bee.wx.menu.labels.Notifications']}" rendered="#{identity.loggedIn}" styleClass="#{menuSelector.submenu == 'Notifications' ? 'selected' : '' }"/></li>
+			</ul>
+		</div>
+    </ui:define>
+    
+    <ui:define name="header">
+		<div class="crm">
+			<dt style="width: 100px">
+				<div class="app-icon app-icon-tasks" />
+			</dt>
+			<dt style="width:550px">
+				<h2>
+					<ui:insert name="domain-header"/>
+				</h2>
+			</dt>
+		</div>
+	</ui:define>
+    
+    <ui:define name="body">
+		<ui:insert name="domain-body"/>
+	</ui:define>
+
+</ui:composition>

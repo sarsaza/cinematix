@@ -1,0 +1,57 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<f:view xmlns="http://www.w3.org/1999/xhtml"
+   xmlns:ui="http://java.sun.com/jsf/facelets"
+   xmlns:f="http://java.sun.com/jsf/core"
+   xmlns:h="http://java.sun.com/jsf/html"
+   xmlns:rich="http://richfaces.org/rich"
+   xmlns:a="http://richfaces.org/a4j"
+   xmlns:s="http://jboss.com/products/seam/taglib"
+   contentType="text/html">
+<html>
+<head>
+	<meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+	<title>#{messages['title']}</title>
+	
+	<a:loadStyle src="/stylesheet/theme.css"/>	
+	
+    <link rel="shortcut icon" type="image/x-icon" href="#{request.contextPath}/favicon.ico" /> 
+    <link rel="icon" type="image/x-icon" href="#{request.contextPath}/favicon.ico" /> 
+</head>
+<body>
+	<div style="position: absolute; top: 30%; width: 100%;">
+		<div style="width:440px; margin-left: auto; margin-right: auto;">
+		
+			<h:form id="loginForm">
+			<rich:panel styleClass="form">
+				<f:facet name="header">#{messages['identity.loginPanel']}</f:facet>
+				
+				<s:decorate id="usenameField" template="/layout/edit.xhtml">
+					<ui:define name="label">#{messages['credentials.username']}:</ui:define>
+					<h:inputText id="username" value="#{credentials.username}" required="true" maxlength="50" style="width:238px;"/>
+				</s:decorate>
+				<s:decorate id="passwordField" template="/layout/edit.xhtml">
+					<ui:define name="label">#{messages['credentials.password']}:</ui:define>
+					<h:inputSecret id="password" value="#{credentials.password}" required="true" maxlength="50" style="width:238px;"/>
+				</s:decorate>
+				<s:decorate id="buttonField" template="/layout/edit.xhtml">
+					<ui:define name="label"></ui:define>
+					<div class="buttons">
+						<h:commandLink id="submit" value="#{messages['identity.login']}" action="#{identity.login}"/>
+					</div>
+				</s:decorate>
+
+				<label></label>
+				
+			</rich:panel>
+			</h:form>
+		
+		</div>
+	
+		<div class="footer" style="">
+			<a href="http://www.bee.kz" target="_blank">ТОО "Bee Software"</a>, <a href="http://www.nitec.kz" target="_blank">АО "НИТ"</a>, 2012 г.
+		</div>
+	</div>
+</body>
+</html>
+</f:view>

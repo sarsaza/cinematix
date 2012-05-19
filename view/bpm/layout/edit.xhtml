@@ -1,0 +1,22 @@
+<ui:composition  xmlns="http://www.w3.org/1999/xhtml"
+                 xmlns:ui="http://java.sun.com/jsf/facelets"
+                 xmlns:h="http://java.sun.com/jsf/html"
+                 xmlns:f="http://java.sun.com/jsf/core"
+                 xmlns:rich="http://richfaces.org/rich"
+                 xmlns:s="http://jboss.com/products/seam/taglib">
+
+	<div class="newFormField">
+	<div class="newFormLabel">
+		<span class="#{invalid ? 'invalid' : ''}">
+			#{not empty var ? messages['ProcessDefinition.'.concat(processInstance.processDefinition.name).concat('.').concat(processInstance.processDefinition.version).concat('.variables.').concat(var).concat('.name')].concat(':'):''}
+			<s:span styleClass="required" rendered="#{required}">*</s:span>
+		</span>
+	</div>
+
+	<s:validateAll>
+	<div class="newFormValue">
+	<ui:insert/>
+	</div>
+	</s:validateAll>
+	</div>
+</ui:composition>

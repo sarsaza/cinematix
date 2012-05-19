@@ -1,0 +1,303 @@
+<?xml version="1.0"?>
+
+<!DOCTYPE hibernate-mapping PUBLIC
+      "-//Hibernate/Hibernate Mapping DTD 3.0//EN"
+      "http://hibernate.sourceforge.net/hibernate-mapping-3.0.dtd">
+
+<hibernate-mapping>
+	
+	<query name="LoggingSession.findLogsByParentLog">
+	    <![CDATA[
+	      select pl
+	      from org.jbpm.logging.log.ProcessLog as pl
+	      where pl.parent = :parent
+	      order by pl.index
+	    ]]>
+	</query>
+	
+  <query name="CustomTaskInstanceList.findSignallingTaskInstancesByActorId">
+    <![CDATA[
+      select ti
+      from org.jbpm.taskmgmt.exe.TaskInstance as ti
+           join fetch ti.processInstance pi
+      where ti.actorId = :actorId
+        and ti.isSuspended = false
+        and ti.isOpen = true
+        and ti.isSignalling = true
+        and (
+        		:searchQuery is null
+        		or 
+        		(
+	        		:searchQuery is not null 
+	       			and 
+	       			(
+		   				ts_match_vq(to_tsvector('russian', coalesce(ti.description, '')), to_tsquery('russian', :searchQuery)) = true
+		   				or
+		   				ts_match_vq(to_tsvector('russian', coalesce(pi.key, '')), to_tsquery('russian', :searchQuery)) = true
+	   				)
+       			)
+        	)
+      order by
+        ti.id desc
+    ]]>
+  </query>
+	
+  <query name="CustomTaskInstanceList.findNonSignallingTaskInstancesByActorId">
+    <![CDATA[
+      select ti
+      from org.jbpm.taskmgmt.exe.TaskInstance as ti
+           join fetch ti.processInstance pi
+      where ti.actorId = :actorId
+        and ti.isSuspended = false
+        and ti.isOpen = true
+        and ti.isSignalling = false
+        and (
+        		:searchQuery is null
+        		or 
+        		(
+	        		:searchQuery is not null 
+	       			and 
+	       			(
+		   				ts_match_vq(to_tsvector('russian', coalesce(ti.description, '')), to_tsquery('russian', :searchQuery)) = true
+		   				or
+		   				ts_match_vq(to_tsvector('russian', coalesce(pi.key, '')), to_tsquery('russian', :searchQuery)) = true
+	   				)
+       			)
+        	)
+      order by
+        ti.id desc
+    ]]>
+  </query>
+
+  <query name="CustomTaskInstanceList.findTaskInstancesByActorIds">
+    <![CDATA[
+      select ti
+      from org.jbpm.taskmgmt.exe.TaskInstance as ti
+           join fetch ti.processInstance
+      where ti.actorId in ( :actorIds )
+        and ti.isSuspended != true
+        and ti.isOpen = true
+      order by
+        ti.id desc
+    ]]>
+  </query>
+
+  <query name="CustomPooledTaskInstanceList.findPooledTaskInstancesByActorId">
+    <![CDATA[
+      select distinct ti
+      from org.jbpm.taskmgmt.exe.PooledActor pooledActor
+           join pooledActor.taskInstances ti
+           join fetch ti.processInstance
+      where pooledActor.actorId = :swimlaneActorId
+        and ti.actorId is null
+        and ti.isSuspended != true
+        and ti.isOpen = true
+      order by
+        ti.id desc
+    ]]>
+  </query>
+
+  <query name="CustomPooledTaskInstanceList.findSignallingPooledTaskInstancesByActorIds">
+    <![CDATA[
+      select distinct ti
+      from org.jbpm.taskmgmt.exe.PooledActor pooledActor
+           join pooledActor.taskInstances ti
+           join fetch ti.processInstance pi
+      where pooledActor.actorId in ( :actorIds )
+        and ti.actorId is null
+        and ti.isSuspended = false
+        and ti.isOpen = true
+        and ti.isSignalling = true
+        and (
+        		:searchQuery is null
+        		or 
+        		(
+	        		:searchQuery is not null 
+	       			and 
+	   				(
+		   				ts_match_vq(to_tsvector('russian', coalesce(ti.description, '')), to_tsquery('russian', :searchQuery)) = true
+		   				or
+		   				ts_match_vq(to_tsvector('russian', coalesce(pi.key, '')), to_tsquery('russian', :searchQuery)) = true
+	   				)
+       			)
+        	)
+      order by
+        ti.id desc
+    ]]>
+  </query>
+
+  <query name="CustomPooledTaskInstanceList.findNonSignallingPooledTaskInstancesByActorIds">
+    <![CDATA[
+      select distinct ti
+      from org.jbpm.taskmgmt.exe.PooledActor pooledActor
+           join pooledActor.taskInstances ti
+           join fetch ti.processInstance pi
+      where pooledActor.actorId in ( :actorIds )
+        and ti.actorId is null
+        and ti.isSuspended = false
+        and ti.isOpen = true
+        and ti.isSignalling = false
+        and (
+        		:searchQuery is null
+        		or 
+        		(
+	        		:searchQuery is not null 
+	       			and 
+	   				(
+		   				ts_match_vq(to_tsvector('russian', coalesce(ti.description, '')), to_tsquery('russian', :searchQuery)) = true
+		   				or
+		   				ts_match_vq(to_tsvector('russian', coalesce(pi.key, '')), to_tsquery('russian', :searchQuery)) = true
+	   				)
+       			)
+        	)
+      order by
+        ti.id desc
+    ]]>
+  </query>
+	
+  <query name="CustomTaskInstanceList.countTaskInstancesByActorId">
+    <![CDATA[
+      select count(ti)
+      from org.jbpm.taskmgmt.exe.TaskInstance as ti
+      where ti.actorId = :actorId
+        and ti.isSuspended = false
+        and ti.isOpen = true
+        and ti.start is null
+    ]]>
+  </query>
+	
+  <query name="CustomTaskInstanceList.countSignallingTaskInstancesByActorId">
+    <![CDATA[
+      select count(ti)
+      from org.jbpm.taskmgmt.exe.TaskInstance as ti
+      where ti.actorId = :actorId
+        and ti.isSuspended = false
+        and ti.isOpen = true
+        and ti.isSignalling = true
+        and ti.start is null
+    ]]>
+  </query>
+	
+  <query name="CustomTaskInstanceList.countNonSignallingTaskInstancesByActorId">
+    <![CDATA[
+      select count(ti)
+      from org.jbpm.taskmgmt.exe.TaskInstance as ti
+      where ti.actorId = :actorId
+        and ti.isSuspended = false
+        and ti.isOpen = true
+        and ti.isSignalling = false
+        and ti.start is null
+    ]]>
+  </query>
+
+  <query name="CustomPooledTaskInstanceList.countPooledTaskInstancesByActorIds">
+    <![CDATA[
+      select count(distinct ti)
+      from org.jbpm.taskmgmt.exe.PooledActor pooledActor
+           join pooledActor.taskInstances ti
+      where pooledActor.actorId in ( :actorIds )
+        and ti.actorId is null
+        and ti.isSuspended = false
+        and ti.isOpen = true
+        and ti.start is null
+    ]]>
+  </query>
+
+  <query name="CustomPooledTaskInstanceList.countSignallingPooledTaskInstancesByActorIds">
+    <![CDATA[
+      select count(distinct ti)
+      from org.jbpm.taskmgmt.exe.PooledActor pooledActor
+           join pooledActor.taskInstances ti
+      where pooledActor.actorId in ( :actorIds )
+        and ti.actorId is null
+        and ti.isSuspended = false
+        and ti.isOpen = true
+        and ti.isSignalling = true
+        and ti.start is null
+    ]]>
+  </query>
+
+  <query name="CustomPooledTaskInstanceList.countNonSignallingPooledTaskInstancesByActorIds">
+    <![CDATA[
+      select count(distinct ti)
+      from org.jbpm.taskmgmt.exe.PooledActor pooledActor
+           join pooledActor.taskInstances ti
+      where pooledActor.actorId in ( :actorIds )
+        and ti.actorId is null
+        and ti.isSuspended = false
+        and ti.isOpen = true
+        and ti.isSignalling = false
+        and ti.start is null
+    ]]>
+  </query>
+	
+  <query name="WxArchivedTaskInstanceList.findTaskInstancesByActorId">
+    <![CDATA[
+      select ti
+      from org.jbpm.taskmgmt.exe.TaskInstance as ti
+           join fetch ti.processInstance pi
+      where ti.actorId = :actorId
+        and cast(ti.create as date) >= cast(:dateFrom as date)
+        and cast(ti.create as date) < cast(:dateTo as date)
+        and ti.isOpen = false
+        and (
+        		:searchQuery is null
+        		or 
+        		(
+	        		:searchQuery is not null 
+	       			and 
+	   				(
+		   				ts_match_vq(to_tsvector('russian', coalesce(ti.description, '')), to_tsquery('russian', :searchQuery)) = true
+		   				or
+		   				ts_match_vq(to_tsvector('russian', coalesce(pi.key, '')), to_tsquery('russian', :searchQuery)) = true
+	   				)
+       			)
+        	)
+      order by
+        ti.id asc
+    ]]>
+  </query>
+	
+  <query name="CustomTaskInstanceList.countProcessDefinitionTaskInstances">
+    <![CDATA[
+      select count(ti)
+      from org.jbpm.taskmgmt.exe.TaskInstance as ti
+      where
+      	ti.processInstance.processDefinition.name = :processDefinitionName
+      	and ti.actorId = :actorId
+        and ti.isSuspended = false
+        and ti.isOpen = true
+        and ti.start is null
+    ]]>
+  </query>
+	
+  <query name="CustomTaskInstanceList.countSignallingProcessDefinitionTaskInstances">
+    <![CDATA[
+      select count(ti)
+      from org.jbpm.taskmgmt.exe.TaskInstance as ti
+      where
+      	ti.processInstance.processDefinition.name = :processDefinitionName
+      	and ti.actorId = :actorId
+        and ti.isSuspended = false
+        and ti.isOpen = true
+        and ti.isSignalling = true
+        and ti.start is null
+    ]]>
+  </query>
+	
+  <query name="CustomTaskInstanceList.countNonSignallingProcessDefinitionTaskInstances">
+    <![CDATA[
+      select count(ti)
+      from org.jbpm.taskmgmt.exe.TaskInstance as ti
+      where
+      	ti.processInstance.processDefinition.name = :processDefinitionName
+      	and ti.actorId = :actorId
+        and ti.isSuspended = false
+        and ti.isOpen = true
+        and ti.isSignalling = false
+        and ti.start is null
+    ]]>
+  </query>
+  
+
+</hibernate-mapping>

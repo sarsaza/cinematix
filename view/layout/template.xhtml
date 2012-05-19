@@ -1,0 +1,46 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+   "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<f:view xmlns="http://www.w3.org/1999/xhtml"
+   xmlns:ui="http://java.sun.com/jsf/facelets"
+   xmlns:f="http://java.sun.com/jsf/core"
+   xmlns:h="http://java.sun.com/jsf/html"
+   xmlns:rich="http://richfaces.org/rich"
+   xmlns:a="http://richfaces.org/a4j"
+   xmlns:s="http://jboss.com/products/seam/taglib"
+   contentType="text/html">
+<html>
+   <head>
+      <meta http-equiv="Content-Type" content="text/html; charset=UTF-8"/>
+      <title>#{messages['title']}</title>
+      <link rel="shortcut icon" href="#{request.contextPath}/favicon.ico"/>
+      <a:loadStyle src="/stylesheet/theme.css"/>
+   </head>
+	<body>
+		<div class="head">
+			<div class="menu" style="float: left">
+				<s:link view="/home.xhtml" value="#{messages['Menu.home']}" styleClass="#{menuSelector.menu == 'HOME'?'selected':''}" propagation="none"/>
+				<!--s:button view="/bpm/definition/list.xhtml" value="#{messages['Menu.processes']}" styleClass="button group #{menuSelector=='DEFINITIONS'?'selected':''}" propagation="none" rendered="#{s:hasPermission('kz.bee.kudos.lrs', '*')}"/-->
+			</div>
+			<div class="menu" style="float: right">
+				<s:link style="padding: 8px 8px 8px 8px" propagation="none">#{authenticatedUser.firstname} #{authenticatedUser.lastname}</s:link>
+				<s:link action="#{identity.logout}" propagation="none" style="padding: 7px 6px 12px 6px;"><span class="icon logout"></span></s:link>
+			</div>
+		</div>
+		<div class="subhead" style="padding: 12px 50px 12px 50px;">
+	    <ui:insert name="header" />
+	    </div>
+        <div class="content">
+			<ui:insert name="body"/>
+		</div>
+        <a:status id="globalStatus" forceId="true">
+			<f:facet name="start">
+				<h:graphicImage value="/img/loading.gif" styleClass="screen-middle"/>
+			</f:facet>
+		</a:status>
+		
+		<div class="footer">
+			<a href="http://www.bee.kz" target="_blank">Dev CATS! 2012"</a>
+		</div>
+   </body>
+</html>
+</f:view>

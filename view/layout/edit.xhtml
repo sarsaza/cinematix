@@ -1,0 +1,9 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:s="http://jboss.com/products/seam/taglib">
+
+	<label><span class="#{required ? 'required' : ''} #{invalid ? 'invalid' : ''}"><ui:insert name="label"/><s:fragment rendered="#{required}">#{' *'}</s:fragment></span></label>
+	<s:validateAll><ui:insert/></s:validateAll>
+
+</ui:composition>
