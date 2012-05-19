@@ -15,10 +15,9 @@ import javax.persistence.Table;
 public class ShowTime {
 	
 	public Long id;
-	public String name;
+	public Movie movie;
 	public Date begin;
 	public Long duration;
-	public Cinema cinema;
 	public Hall hall;
 	
 	@Id
@@ -29,14 +28,6 @@ public class ShowTime {
 	}
 	public void setId(Long id) {
 		this.id = id;
-	}
-	
-	@Column(name="NAME_")
-	public String getName() {
-		return name;
-	}
-	public void setName(String name) {
-		this.name = name;
 	}
 	
 	@Column(name="BEGIN_")
@@ -56,20 +47,20 @@ public class ShowTime {
 	}
 	
 	@ManyToOne
-	@JoinColumn(name = "CINEMA_")
-	public Cinema getCinema() {
-		return cinema;
-	}
-	public void setCinema(Cinema cinema) {
-		this.cinema = cinema;
-	}
-	
-	@ManyToOne
 	@JoinColumn(name = "HALL_")
 	public Hall getHall() {
 		return hall;
 	}
 	public void setHall(Hall hall) {
 		this.hall = hall;
+	}
+	
+	@ManyToOne
+	@JoinColumn(name="MOVIE_")
+	public Movie getMovie(){
+		return movie;
+	}
+	public void setMovie(Movie movie){
+		this.movie = movie;
 	}
 }

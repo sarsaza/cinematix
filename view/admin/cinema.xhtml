@@ -1,0 +1,200 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:a="http://richfaces.org/a4j"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:c="http://java.sun.com/jstl/core"
+	template="/layout/template.xhtml">
+
+	<ui:define name="header">
+		<div class="title">Админка</div>
+	</ui:define>
+	<ui:define name="body">
+	<script type="text/javascript">
+	//<![CDATA[
+		function hide(){
+			jQuery('#mask').hide();
+			jQuery('.window').hide();
+		}
+		jQuery(document).ready(function(){
+
+			jQuery('a[class=modal]').click(function(e) {
+				e.preventDefault();
+				var id = "#"+jQuery(this).attr('href');
+				var winH = jQuery(window).height();
+				var winW = jQuery(window).width();
+				jQuery('#mask').css({'width':jQuery(document).width(),'height':jQuery(document).height()});
+				jQuery('#mask').fadeIn(500);	
+				jQuery('#mask').fadeTo("slow",0.8);	
+				jQuery(id).css('top',  winH/2-jQuery(id).height()/2);
+				jQuery(id).css('left', winW/2-jQuery(id).width()/2);
+				jQuery(id).fadeIn(1000); 
+			});
+			
+			jQuery('#mask').click(function () {
+				jQuery(this).hide();
+				jQuery('.window').hide();
+			});
+		});
+	//]]>
+	</script>
+	<style>
+		#mask {
+		  position:absolute;
+		  left:0;
+		  top:0;
+		  z-index:9000;
+		  background-color:#000;
+		  display:none;
+		}
+		  
+		.window {
+		  position:fixed;
+		  left:0;
+		  top:0;
+		  width:440px;
+		  height:310px;
+		  display:none;
+		  z-index:9999;
+		  font-size: 14px;
+		}
+	</style>
+	<a:outputPanel id="CinemasOP"><h:form>
+		<div class="buttons">
+			<a:commandLink value="Новый кинотеатр" oncomplete="jQuery('#mpNewCinemaLink').click()"
+				action="#{cinemaManager.createCinema()}" reRender="opNewHall" styleClass="green"
+				ajaxSingle="true" ignoreDupResponses="true" eventsQueue="globalQueue"/>
+		</div>
+		<rich:dataTable cellpadding="0" cellspacing="0" width="700" border="0" var="cinema"
+			value="#{cinemaManager.cinemas}">
+			<rich:column>
+				<h:outputText value="#{cinema.name}" />
+			</rich:column>
+			<rich:column>
+				<h:outputText value="#{cinema.address}" />
+			</rich:column>
+			<rich:column>
+				<h:outputText value="#{cinema.description}" />
+			</rich:column>
+			<rich:column>
+				<a:commandLink value="Редактировать" oncomplete="jQuery('#mpNewCinemaLink').click()"
+					action="#{cinemaManager.setCinema(cinema)}" reRender="opNewCinema"
+					ignoreDupResponses="true" eventsQueue="globalQueue"/>/
+				<a:commandLink value="Удалить" action="#{cinemaManager.removeCinema(cinema.id)}" ajaxSingle="true"
+					oncomplete="jQuery('#mpRemoveLink').click()"  
+					reRender="CinemasOP" ignoreDupResponses="true" eventsQueue="globalQueue"/>		
+			</rich:column>
+			<rich:column>
+				<a:commandLink value="Добавить зал" oncomplete="jQuery('#mpNewHallLink').click()"
+					action="#{cinemaManager.createHall(cinema)}" reRender="opNewHall"
+					ignoreDupResponses="true" eventsQueue="globalQueue"/>
+			</rich:column>
+			<rich:subTable var="hall" value="#{cinemaManager.getHalls(cinema)}">
+				<rich:column>
+					<rich:spacer></rich:spacer>
+				</rich:column>
+				<rich:column>
+					<h:outputText value="#{hall.name}"></h:outputText>
+				</rich:column>
+				<rich:column>
+					<h:outputText value="#{hall.type}"></h:outputText>
+				</rich:column>
+				<rich:column>
+					<h:outputText value="#{hall.rows}"></h:outputText>x
+					<h:outputText value="#{hall.columns}"></h:outputText>
+				</rich:column>
+				<h:column>
+					<a:commandLink ajaxSingle="true" value="Редактировать" action="#{cinemaManager.setHall(hall)}"
+						oncomplete="jQuery('#mpNewHallLink').click()" 
+						reRender="opNewHall" eventsQueue="globalQueue" ignoreDupResponses="true"/>/
+					<a:commandLink ajaxSingle="true" value="Удалить" action="#{cinemaManager.setHall(hall)}"
+						oncomplete="jQuery('#mpRemoveLink').click()" 
+						reRender="CinemasOP" eventsQueue="globalQueue" ignoreDupResponses="true"/>
+				</h:column>
+			</rich:subTable>
+		</rich:dataTable>
+	</h:form></a:outputPanel>
+	<a href="mpNewHall" class="modal" id="mpNewHallLink" style="display:none;">a</a>
+	<div id="mpNewHall" class="window">
+		<a:outputPanel id="opNewHall"><h:form>
+			<div class="rich-panel form">
+				<div class="rich-panel-header">Зал</div>
+				<div class="rich-panel-body">
+				<div class="field">
+					<label>Имя:</label>
+					<h:inputText value="#{cinemaManager.hall.name}" required="true"/>
+				</div>
+				<div class="buttons">
+					<a:commandLink action="#{cinemaManager.saveHall()}" 
+						value="Сохранить" styleClass="green" reRender="CinemasOP" ignoreDupResponses="true"  
+						oncomplete="hide()" style="margin-bottom: 10px"/>
+					<a:commandLink value="Отмена" styleClass="red" action="#{cinemaManager.cancel()}" 
+					style="margin-bottom: 10px" oncomplete="hide()" ajaxSingle="true"/>
+				</div>
+			</div>
+		</div>
+		</h:form></a:outputPanel>
+	</div>
+	<a href="mpNewCinema" class="modal" id="mpNewCinemaLink" style="display:none;">a</a>
+	<div id="mpNewCinema" class="window">
+		<a:outputPanel id="opNewCinema"><h:form>
+			<div class="rich-panel form">
+				<div class="rich-panel-header">Кинотеатр</div>
+				<div class="rich-panel-body">
+				<div class="field">
+					<label>Имя:</label>
+					<h:inputText value="#{cinemaManager.cinema.name}" required="true"/>
+				</div>
+				<div class="field">
+					<label>Адрес:</label>
+					<h:inputText value="#{cinemaManager.cinema.address}" required="true"/>
+				</div>
+				<div class="field">
+					<label>Описание:</label>
+					<h:inputText value="#{cinemaManager.cinema.description}" required="true"/>
+				</div>
+				<div class="field">
+					<label>Имя:</label>
+					<h:inputText value="#{cinemaManager.cinema.name}" required="true"/>
+				</div>
+				<div class="field">
+					<label>Имя:</label>
+					<h:inputText value="#{cinemaManager.cinema.name}" required="true"/>
+				</div>
+				<div class="buttons">
+					<a:commandLink action="#{cinemaManager.saveCinema()}" 
+						value="Сохранить" styleClass="green" reRender="CinemasOP" ignoreDupResponses="true"  
+						oncomplete="hide()" style="margin-bottom: 10px"/>
+					<a:commandLink value="Отмена" styleClass="red" action="#{cinemaManager.cancel()}" 
+					style="margin-bottom: 10px" oncomplete="hide()" ajaxSingle="true"/>
+				</div>
+			</div>
+		</div>
+		</h:form></a:outputPanel>
+	</div>
+	<a href="mpRemove" class="modal" id="mpRemoveLink" style="display:none;">a</a>
+	<div id="mpRemove" class="window">
+		<a:outputPanel id="opRemove"><h:form>
+			<div class="rich-panel form">
+				<div class="rich-panel-header">Внимание</div>
+				<div class="rich-panel-body">
+				<div class="field">
+					Вы действительно хотите удалить?
+				</div>
+				<div class="buttons">
+					<a:commandLink action="#{cinemaManager.remove()}" 
+						value="Удалить" styleClass="red" reRender="CinemasOP" ignoreDupResponses="true"  
+						oncomplete="hide()" style="margin-bottom: 10px"/>
+					<a:commandLink value="Отмена" styleClass="yellow" action="#{cinemaManager.cancel()}" 
+					style="margin-bottom: 10px" oncomplete="hide()" ajaxSingle="true"/>
+				</div>
+			</div>
+		</div>
+		</h:form></a:outputPanel>
+	</div>
+	<div id="mask"></div>
+	
+	</ui:define>
+</ui:composition>

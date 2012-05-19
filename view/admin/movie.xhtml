@@ -1,0 +1,191 @@
+<ui:composition xmlns="http://www.w3.org/1999/xhtml"
+	xmlns:s="http://jboss.com/products/seam/taglib"
+	xmlns:ui="http://java.sun.com/jsf/facelets"
+	xmlns:f="http://java.sun.com/jsf/core"
+	xmlns:h="http://java.sun.com/jsf/html"
+	xmlns:a="http://richfaces.org/a4j"
+	xmlns:rich="http://richfaces.org/rich"
+	xmlns:c="http://java.sun.com/jstl/core"
+	template="/layout/template.xhtml">
+
+<ui:define name="header">
+	<div class="title">
+		Админка
+	</div>
+</ui:define>
+<ui:define name="body">
+	<script type="text/javascript" src="../seam/resource/remoting/resource/remote.js?vers=1.0"></script>
+	<script type="text/javascript" src="../seam/resource/remoting/interface.js?cinemaManager"></script>
+	<script type="text/javascript">
+	//<![CDATA[
+		var cpiid = -1;
+		var marksRet = false;
+		var _courseTotalHours = #{learningManager.course.totalHours};
+		Seam.Remoting.displayError = function(code){
+		}
+	 	Seam.Remoting.displayLoadingMessage = function(){
+			jQuery("#dvloader").show();
+		}
+		Seam.Remoting.hideLoadingMessage = function(){
+			jQuery("#dvloader").hide();
+		}
+		function drawTable(){
+			Seam.Remoting.getContext().setConversationId(#{conversation.id});
+			Seam.Component.getInstance("cinemaManager").drawGraph(drawTableCallback);
+		}
+		function drawTableCallback(res){
+			var GraphHtml = "<table id='graphTable' class='course-process-table' cellpadding='0' cellspacing='0'>"+
+				"<thead><tr><th>№</th><th>Неделя</th><th>Тип урока</th><th>Преподаватель</th><th>Часы</th><th></th></tr></thead><tbody>";
+			for(var i=0;i<res.length;i++){
+				GraphHtml += "<tr id='cpi_"+res[i][0][0]+"'><td>"+(Number(i)+Number(1))+"</td><td>"+res[i][0][1]+"</td><td>"+res[i][0][3]+"</td><td>"+res[i][0][2]+"</td><td>"+res[i][0][4]+"</td>"+
+							"<td><a href='addTopicPanel' name='modal' style='border: 0px' cpi='"+res[i][0][0]+"'><span class='icon add2'></span></a></td></tr>";
+			}
+			GraphHtml += "</tbody></table>";
+			jQuery("#Graph").append(GraphHtml);
+			transform();
+		}
+		function addTopic(){
+			var fields = jQuery("#addTopicForm").serializeArray();
+			var title = "";
+			var description = "";
+			var hours = "";
+			var order = "";
+			var marksRet = false;
+			jQuery.each(fields, function(i, field){
+				if(field.name=="title"){
+					title = field.value;
+				}
+				else if(field.name=="description"){
+					description = field.value;
+				}
+				else if(field.name=="hours"){
+					hours = field.value;
+				}
+				else if(field.name=="order"){
+					order = field.value;
+				}
+			});
+			Seam.Component.getInstance("learningManager").addTopic(cpiid, title, description, Number(hours), Number(order), addTopicCallback);			
+		}
+		function addTopicCallback(res){
+			var html = "<tr id='tid_"+res[1]+"'><td></td><td></td><td colspan='2' class='topic'><label>"+res[4]+". "+res[2]+"</label>"+
+						"<div>"+res[5]+"</div></td><td>"+res[3]+"</td>"+
+						"<td><a href='editTopicPanel' name='modal' style='border: 0px'"+ 
+							"topicid='"+res[1]+"'"+
+							"title='"+res[2]+"'"+ 
+							"hours='"+res[3]+"'"+
+							"order='"+res[4]+"'"+ 
+							"description='"+res[5]+"'><span class='icon edit2'></span></a>"+
+						"<a href='delTopicPanel' name='modal' style='border: 0px'"+
+							"topicid='"+res[1]+"'"+
+						"><span class='icon delete2'></span></a>"+
+						"</td>"+
+						"</tr>";
+			console.log(res[0]);
+			var flag = false;
+			jQuery("#graphTable tbody tr[id=cpi_"+res[0]+"]").nextAll("tr").each(function(insertt){    
+				if(jQuery(this).attr("id").indexOf("cpi")!=-1){  if(!flag){flag=true;jQuery(html).insertBefore(jQuery(this));} }
+			});
+			if(!flag){
+				jQuery(html).insertAfter(jQuery("#graphTable tr:last"));
+			}
+			transform();
+			hide();
+		}
+		function editTopic(){
+			var fields = jQuery("#editTopicForm").serializeArray();
+			var title = "";
+			var description = "";
+			var hours = "";
+			var order = "";
+			jQuery.each(fields, function(i, field){
+				if(field.name=="title"){
+					title = field.value;
+				}
+				else if(field.name=="description"){
+					description = field.value;
+				}
+				else if(field.name=="hours"){
+					hours = field.value;
+				}
+				else if(field.name=="order"){
+					order = field.value;
+				}
+			});
+			Seam.Component.getInstance("learningManager").editTopic(tid, title, description, Number(hours), Number(order), editTopicCallback);
+		}
+		function editTopicCallback(res){
+			jQuery("#tid_"+res[0]).empty();
+			jQuery("#tid_"+res[0]).append("<td></td><td></td><td colspan='2' class='topic'><label>"+res[3]+". "+res[1]+"</label>"+
+					"<div>"+res[4]+"</div></td><td>"+res[2]+"</td>"+
+					"<td><a href='editTopicPanel' name='modal' style='border: 0px'"+ 
+						"topicid='"+res[0]+"'"+
+						"title='"+res[1]+"'"+ 
+						"hours='"+res[2]+"'"+
+						"order='"+res[3]+"'"+ 
+						"description='"+res[4]+"'><span class='icon edit2'></span></a>"+
+					"<a href='delTopicPanel' name='modal' style='border: 0px'"+
+						"topicid='"+res[0]+"'"+
+					"><span class='icon delete2'></span></a>"+
+					"</td>");
+			transform();
+			hide();
+		}
+		function deleteTopic(){
+			Seam.Component.getInstance("learningManager").deleteTopic(tid, deleteTopicCallback);
+		}
+		function deleteTopicCallback(res){
+			jQuery("#tid_"+res).remove();
+			hide();
+		}
+		function clearAddTopicForm(){
+			jQuery("#ttitle").val('');
+			jQuery("#tdescription").val('');
+			jQuery("#thours").val('');
+			jQuery("#torder").val('');
+		}
+		function hide(){
+			jQuery('#mask').hide();
+			jQuery('.window').hide();
+		}
+		jQuery(document).ready(function(){
+			hoursProgressBar();
+			transform();
+		});
+		function transform(){
+			jQuery('a[class=modal], a[name=modal]').click(function(e) {
+				e.preventDefault();
+				var id = "#"+jQuery(this).attr('href');
+				if(id=="#addTopicPanel"){
+					cpiid = Number(jQuery(this).attr('cpi'));
+					clearAddTopicForm();
+				}
+				if(id=="#editTopicPanel"){
+					jQuery("#etitle").val(jQuery(this).attr('title'));
+					jQuery("#ehours").val(jQuery(this).attr('hours'));
+					jQuery("#edescription").val(jQuery(this).attr('description'));
+					jQuery("#eorder").val(jQuery(this).attr('order'));
+					tid=Number(jQuery(this).attr('topicid'));
+				}
+				if(id=="#delTopicPanel"){
+					tid=Number(jQuery(this).attr('topicid'));
+				}
+				var winH = jQuery(window).height();
+				var winW = jQuery(window).width();
+				jQuery('#mask').css({'width':jQuery(document).width(),'height':jQuery(document).height()});
+				jQuery('#mask').fadeIn(500);	
+				jQuery('#mask').fadeTo("slow",0.8);	
+				jQuery(id).css('top',  winH/2-jQuery(id).height()/2);
+				jQuery(id).css('left', winW/2-jQuery(id).width()/2);
+				jQuery(id).fadeIn(1000); 
+			});
+			
+			jQuery('#mask').click(function () {
+				jQuery(this).hide();
+				jQuery('.window').hide();
+			});
+		}
+	</script>
+	
+</ui:define>
+</ui:composition>
